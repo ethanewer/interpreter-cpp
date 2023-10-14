@@ -41,6 +41,8 @@ public:
 
 	Obj* visit_call_expr(Call* expr) override;
 
+	Obj* visit_lambda_expr(LambdaExpr* expr) override;
+
 	void visit_expression_stmt(Expression* stmt) override;
 
 	void visit_print_stmt(Print* stmt) override;
@@ -56,6 +58,8 @@ public:
 	void visit_fn_stmt(FnStmt* stmt) override;
 
 	void visit_return_stmt(Return* stmt) override;
+
+	~Interpreter();
 
 private:
 	Environment* env;

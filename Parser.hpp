@@ -44,6 +44,10 @@ private:
 
 	Expr* expression();
 
+	Expr* lambda_expr();
+
+	Expr* fn_expr();
+
 	Expr* assignment();
 
 	Expr* logical_or();

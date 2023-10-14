@@ -4,7 +4,9 @@
 #include <vector>
 #include "Token.hpp"
 #include "Obj.hpp"
+#include "Stmt.hpp"
 
+class Stmt;
 class Binary;
 class Grouping;
 class Literal;
@@ -13,6 +15,7 @@ class Unary;
 class Variable;
 class Assign;
 class Call;
+class LambdaExpr;
 
 class Expr {
 public: 
@@ -26,6 +29,7 @@ public:
         virtual Obj* visit_variable_expr(Variable* expr) = 0;
         virtual Obj* visit_assign_expr(Assign* expr) = 0;
         virtual Obj* visit_call_expr(Call* expr) = 0;
+        virtual Obj* visit_lambda_expr(LambdaExpr* expr) = 0;
 	};
 
 	virtual Obj* accept(Visitor* visitor) = 0;
@@ -167,6 +171,28 @@ public:
         if (callee != nullptr) delete callee;
         if (paren != nullptr) delete paren;
     }
+};
+
+class LambdaExpr : public Expr {
+public:
+	std::vector<Token*> params;
+	std::vector<Stmt*> body;
+
+	LambdaExpr(std::vector<Token*> params, std::vector<Stmt*> body)
+	 : params(params), body(body) {}
+
+	Obj* accept(Visitor* visitor) override {
+		return visitor->visit_lambda_expr(this);
+	}
+
+	~LambdaExpr() {
+		for (Token* p : params) {
+			if (p != nullptr) delete p;
+		}
+		for (Stmt* s : body) {
+			if (s != nullptr) delete s;
+		}
+	}
 };
 
 #endif

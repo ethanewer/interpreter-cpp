@@ -10,14 +10,9 @@ std::vector<Stmt*> Parser::parse() {
 }
 
 Stmt* Parser::declaration() {
-	try {
-		if (match(VAR)) return var_declaration();
-		if (match(FN)) return fn_declaration("fn");
-		return stmt();
-	} catch (RuntimeError& e) {
-		synchronize();
-		return nullptr;
-	}
+	if (match(LET)) return var_declaration();
+	if (match(FN)) return fn_declaration("fn");
+	return stmt();
 }
 
 Stmt* Parser::var_declaration() {
@@ -31,16 +26,16 @@ Stmt* Parser::var_declaration() {
 FnStmt* Parser::fn_declaration(std::string kind) {
 	Token* name = consume(IDENTIFIER, "Expect " + kind + " name");
 	consume(LEFT_PAREN, "Expect '(' after " + kind + " name");
-	std::vector<Token*> parameters;
+	std::vector<Token*> params;
 	if (!check(RIGHT_PAREN)) {
 		do {
-			parameters.push_back(consume(IDENTIFIER, "Expect parameter name"));
+			params.push_back(consume(IDENTIFIER, "Expect parameter name"));
 		} while (match(COMMA));
 	}
 	consume(RIGHT_PAREN, "Expect ')' after parameters");
 	consume(LEFT_BRACE, "Expect '{' before " + kind + " body.");
 	std::vector<Stmt*> body = block();
-	return new FnStmt(name, parameters, body);
+	return new FnStmt(name, params, body);
 }
 
 Stmt* Parser::stmt() {
@@ -58,7 +53,7 @@ Stmt* Parser::for_stmt() {
 	
 	Stmt* initializer;
 	if (match(SEMICOLON)) initializer = nullptr;
-	else if (match(VAR)) initializer = var_declaration();
+	else if (match(LET)) initializer = var_declaration();
 	else initializer = expr_stmt();
 
 	Expr* condition;
@@ -121,7 +116,7 @@ Stmt* Parser::while_stmt() {
 std::vector<Stmt*> Parser::block() {
 	std::vector<Stmt*> stmts;
 	while (!check(RIGHT_BRACE) && !is_at_end()) stmts.push_back(declaration());
-	consume(RIGHT_BRACE, "Expect '{' after block");
+	consume(RIGHT_BRACE, "Expect '}' after block");
 	return stmts;
 }
 
@@ -132,6 +127,23 @@ Stmt* Parser::expr_stmt() {
 }
 
 Expr* Parser::expression() {
+	return lambda_expr();
+}
+
+Expr* Parser::lambda_expr() {
+	if (match(FN)) {
+		consume(LEFT_PAREN, "Expect '(' after anonymous fn");
+		std::vector<Token*> params;
+		if (!check(RIGHT_PAREN)) {
+			do {
+				params.push_back(consume(IDENTIFIER, "Expect parameter name"));
+			} while (match(COMMA));
+		}
+		consume(RIGHT_PAREN, "Expect ')' after parameeters");
+		consume(LEFT_BRACE, "Expect '{' before fn body.");
+		std::vector<Stmt*> body = block();
+		return new LambdaExpr(params, body);
+	}
 	return assignment();
 }
 
@@ -261,17 +273,6 @@ void Parser::synchronize() {
 	advance();
 	while (!is_at_end()) {
 		if (prev()->type == SEMICOLON) return;
-		switch (peek()->type) {
-			case CLASS:
-			case FN:
-			case VAR:
-			case FOR:
-			case IF:
-			case WHILE:
-			case PRINT:
-			case RETURN:
-			return;
-		}
 		advance();
 	}
 }

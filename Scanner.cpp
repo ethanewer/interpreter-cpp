@@ -15,7 +15,7 @@ Scanner::Scanner(std::string source) : source(source), start(0), curr(0), line(1
 	keywords["super"] = SUPER;
 	keywords["this"] = THIS;
 	keywords["true"] = TRUE;
-	keywords["var"] = VAR;
+	keywords["let"] = LET;
 	keywords["while"] = WHILE;
 }
 

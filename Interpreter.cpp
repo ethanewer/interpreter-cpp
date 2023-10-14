@@ -156,6 +156,10 @@ Obj* Interpreter::visit_call_expr(Call* expr) {
 	} else throw RuntimeError(expr->paren, "Object is not callable");
 }
 
+Obj* Interpreter::visit_lambda_expr(LambdaExpr* expr) {
+	return new Lambda(expr);
+}
+
 void Interpreter::visit_expression_stmt(Expression* stmt) {
 	evaluate(stmt->expression);
 }
@@ -256,4 +260,8 @@ std::string Interpreter::stringify(Obj* val) {
 		return string_val->val;
 	}
 	return "__Obj__";
+}
+
+Interpreter::~Interpreter() {
+	delete globals;
 }

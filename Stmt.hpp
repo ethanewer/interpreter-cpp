@@ -3,6 +3,7 @@
 
 #include "Expr.hpp"
 
+class Expr;
 class Expression;
 class Print;
 class Var;

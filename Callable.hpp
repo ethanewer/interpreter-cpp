@@ -31,6 +31,18 @@ private:
 	Environment* closure;
 };
 
+class Lambda : public Callable {
+public:
+	Lambda(LambdaExpr* expr);
+
+	Obj* call(Interpreter* interpreter, std::vector<Obj*> arguments) override;
+
+	int num_params() override;
+
+private:
+	LambdaExpr* expr;
+};
+
 class Clock : public Callable {
 public:
 	Obj* call(Interpreter* interpreter, std::vector<Obj*> arguments) override;
