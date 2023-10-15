@@ -17,31 +17,31 @@
 
 class Interpreter : Expr::Visitor, Stmt::Visitor {
 public:
-	Environment* globals;
+	std::shared_ptr<Environment> globals;
 	
 	Interpreter();
 
-	void interpret(std::vector<Stmt*> stmts);
+	void interpret(std::vector<std::shared_ptr<Stmt>> stmts);
 
-	void execute_block(std::vector<Stmt*>& stmts, Environment* env);
+	void execute_block(std::vector<std::shared_ptr<Stmt>>& stmts, std::shared_ptr<Environment> env);
 
-	Obj* visit_literal_expr(Literal* expr) override;
+	std::shared_ptr<Obj> visit_literal_expr(Literal* expr) override;
 
-	Obj* visit_grouping_expr(Grouping* expr) override;
+	std::shared_ptr<Obj> visit_grouping_expr(Grouping* expr) override;
 
-	Obj* visit_unary_expr(Unary* expr) override;
+	std::shared_ptr<Obj> visit_unary_expr(Unary* expr) override;
 
-	Obj* visit_binary_expr(Binary* expr) override;
+	std::shared_ptr<Obj> visit_binary_expr(Binary* expr) override;
 
-	Obj* visit_variable_expr(Variable* expr) override;
+	std::shared_ptr<Obj> visit_variable_expr(Variable* expr) override;
 
-	Obj* visit_assign_expr(Assign* expr) override;
+	std::shared_ptr<Obj> visit_assign_expr(Assign* expr) override;
 
-	Obj* visit_logical_expr(Logical* expr) override;
+	std::shared_ptr<Obj> visit_logical_expr(Logical* expr) override;
 
-	Obj* visit_call_expr(Call* expr) override;
+	std::shared_ptr<Obj> visit_call_expr(Call* expr) override;
 
-	Obj* visit_lambda_expr(LambdaExpr* expr) override;
+	std::shared_ptr<Obj> visit_lambda_expr(LambdaExpr* expr) override;
 
 	void visit_expression_stmt(Expression* stmt) override;
 
@@ -59,24 +59,24 @@ public:
 
 	void visit_return_stmt(Return* stmt) override;
 
-	~Interpreter();
+	~Interpreter() {}
 
 private:
-	Environment* env;
+	std::shared_ptr<Environment> env;
 
-	Obj* evaluate(Expr* expr);
+	std::shared_ptr<Obj> evaluate(std::shared_ptr<Expr> expr);
 
-	void execute(Stmt* stmt);
+	void execute(std::shared_ptr<Stmt> stmt);
 
-	bool is_truthy(Obj* val);
+	bool is_truthy(std::shared_ptr<Obj> val);
 
-	bool is_equal(Obj* a, Obj* b);
+	bool is_equal(std::shared_ptr<Obj> a, std::shared_ptr<Obj> b);
 
-	void check_num_operand(Token* op, Obj* operand);
+	void check_num_operand(std::shared_ptr<Token> op, std::shared_ptr<Obj> operand);
 
-	void check_num_operands(Token* op, Obj* a, Obj* b);
+	void check_num_operands(std::shared_ptr<Token> op, std::shared_ptr<Obj> a, std::shared_ptr<Obj> b);
 
-	std::string stringify(Obj* val);
+	std::string stringify(std::shared_ptr<Obj> val);
 };
 
 #endif

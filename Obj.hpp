@@ -10,10 +10,6 @@ public:
     bool has_ref;
     
     Obj() : has_ref(false) {} 
-
-    virtual Obj* clone() {
-        return nullptr;
-    }
     
     virtual ~Obj() {}
 };
@@ -34,10 +30,6 @@ public:
     double val;
     
     DoubleObj(double val) : val(val) {}
-
-    Obj* clone() {
-        return new DoubleObj(val);
-    } 
 };
 
 class StringObj : public Obj {
@@ -45,10 +37,6 @@ public:
     std::string val;
     
     StringObj(std::string val) : val(val) {}
-
-    Obj* clone() {
-        return new StringObj(val);
-    } 
 };
 
 #endif

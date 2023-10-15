@@ -15,9 +15,9 @@ public:
 
 class RuntimeError : public std::runtime_error {
 public:
-	Token* token;
+	std::shared_ptr<Token> token;
 
-    RuntimeError(Token* token, const std::string& message)
+    RuntimeError(std::shared_ptr<Token> token, const std::string& message)
         : std::runtime_error(message), token(token) {}
 };
 

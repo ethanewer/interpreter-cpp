@@ -16,10 +16,10 @@ bool had_error;
 bool had_runtime_error;
 
 void run(std::string source) {
-	std::vector<Stmt*> stmts;
+	std::vector<std::shared_ptr<Stmt>> stmts;
 	try {
 		Scanner scanner(source);
-		std::vector<Token*> tokens = scanner.scan_tokens();
+		std::vector<std::shared_ptr<Token>> tokens = scanner.scan_tokens();
 		Parser parser(tokens);
 		stmts = parser.parse();
 		interpreter.interpret(stmts);
@@ -30,9 +30,6 @@ void run(std::string source) {
 		std::cout << "Runtime error: [line: " << e.token->line << "] " << e.what() << '\n';
 		had_error = true;
 		had_runtime_error = true;
-	}
-	for (Stmt* s : stmts) {
-		if (s != nullptr) delete s;
 	}
 }
 

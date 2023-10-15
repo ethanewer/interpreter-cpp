@@ -1,32 +1,32 @@
 
 #include "Parser.hpp"
 
-Parser::Parser(std::vector<Token*> tokens) : tokens(tokens), curr(0) {}
+Parser::Parser(std::vector<std::shared_ptr<Token>> tokens) : tokens(tokens), curr(0) {}
 
-std::vector<Stmt*> Parser::parse() {
-	std::vector<Stmt*> stmts;
+std::vector<std::shared_ptr<Stmt>> Parser::parse() {
+	std::vector<std::shared_ptr<Stmt>> stmts;
 	while (!is_at_end()) stmts.push_back(declaration());
 	return stmts;
 }
 
-Stmt* Parser::declaration() {
+std::shared_ptr<Stmt> Parser::declaration() {
 	if (match(LET)) return var_declaration();
 	if (match(FN)) return fn_declaration("fn");
 	return stmt();
 }
 
-Stmt* Parser::var_declaration() {
-	Token* name = consume(IDENTIFIER, "Expect variable name");
-	Expr* initializer = nullptr;
+std::shared_ptr<Stmt> Parser::var_declaration() {
+	std::shared_ptr<Token> name = consume(IDENTIFIER, "Expect variable name");
+	std::shared_ptr<Expr> initializer = nullptr;
 	if (match(EQUAL)) initializer = expression();
 	consume(SEMICOLON, "Expect ';' after variable declaration");
-	return new Var(name, initializer);
+	return std::make_shared<Var>(name, initializer);
 }
 
-FnStmt* Parser::fn_declaration(std::string kind) {
-	Token* name = consume(IDENTIFIER, "Expect " + kind + " name");
+std::shared_ptr<FnStmt> Parser::fn_declaration(std::string kind) {
+	std::shared_ptr<Token> name = consume(IDENTIFIER, "Expect " + kind + " name");
 	consume(LEFT_PAREN, "Expect '(' after " + kind + " name");
-	std::vector<Token*> params;
+	std::vector<std::shared_ptr<Token>> params;
 	if (!check(RIGHT_PAREN)) {
 		do {
 			params.push_back(consume(IDENTIFIER, "Expect parameter name"));
@@ -34,106 +34,103 @@ FnStmt* Parser::fn_declaration(std::string kind) {
 	}
 	consume(RIGHT_PAREN, "Expect ')' after parameters");
 	consume(LEFT_BRACE, "Expect '{' before " + kind + " body.");
-	std::vector<Stmt*> body = block();
-	return new FnStmt(name, params, body);
+	std::vector<std::shared_ptr<Stmt>> body = block();
+	return std::make_shared<FnStmt>(name, params, body);
 }
 
-Stmt* Parser::stmt() {
+std::shared_ptr<Stmt> Parser::stmt() {
 	if (match(FOR)) return for_stmt();
 	if (match(IF)) return if_stmt();
 	if (match(PRINT)) return print_stmt();
 	if (match(RETURN)) return return_stmt();
 	if (match(WHILE)) return while_stmt();
-	if (match(LEFT_BRACE)) return new Block(block());
+	if (match(LEFT_BRACE)) return std::make_shared<Block>(block());
 	return expr_stmt();
 }
 
-Stmt* Parser::for_stmt() {
+std::shared_ptr<Stmt> Parser::for_stmt() {
 	consume(LEFT_PAREN, "Expect '(' after 'for'");
 	
-	Stmt* initializer;
+	std::shared_ptr<Stmt> initializer;
 	if (match(SEMICOLON)) initializer = nullptr;
 	else if (match(LET)) initializer = var_declaration();
 	else initializer = expr_stmt();
 
-	Expr* condition;
+	std::shared_ptr<Expr> condition;
 	if (!check(SEMICOLON)) condition = expression();
-	else condition = new Literal(new BoolObj(true));
+	else condition = std::make_shared<Literal>(std::make_shared<BoolObj>(true));
 	consume(SEMICOLON, "Expect ';' after for loop condition");
 
-	Expr* increment = nullptr;
+	std::shared_ptr<Expr> increment = nullptr;
 	if (!check(RIGHT_PAREN)) increment = expression();
 	consume(RIGHT_PAREN, "Expect ')' after for clauses");
 
-	Stmt* body = stmt();
+	std::shared_ptr<Stmt> body = stmt();
 
 	if (increment != nullptr) {
-		body = new Block({
-			body,
-			new Expression(increment)
-		});
+		body = std::make_shared<Block>(std::vector<std::shared_ptr<Stmt>> {body, std::make_shared<Expression>(increment)});
 	}
 
-	body = new While(condition, body);
+	body = std::make_shared<While>(condition, body);
 	
-	if (initializer != nullptr) body = new Block({initializer, body});
+	if (initializer != nullptr) body = std::make_shared<Block>(std::vector<std::shared_ptr<Stmt>> {initializer, body});
 	
 	return body;
 }
 
-Stmt* Parser::if_stmt() {
+std::shared_ptr<Stmt> Parser::if_stmt() {
 	consume(LEFT_PAREN, "Expect '(' after 'if'");
-	Expr* condition = expression();
+	std::shared_ptr<Expr> condition = expression();
 	consume(RIGHT_PAREN, "Expect ')' after if contidion");
-	Stmt* then_branch = stmt();
-	Stmt* else_branch = nullptr;
+	std::shared_ptr<Stmt> then_branch = stmt();
+	std::shared_ptr<Stmt> else_branch = nullptr;
 	if (match(ELSE)) else_branch = stmt();
-	return new If(condition, then_branch, else_branch);
+	return std::make_shared<If>(condition, then_branch, else_branch);
 }
 
-Stmt* Parser::print_stmt() {
-	Expr* val = expression();
+std::shared_ptr<Stmt> Parser::print_stmt() {
+	std::shared_ptr<Expr> val = expression();
 	consume(SEMICOLON, "Expect ';' after value");
-	return new Print(val);
+	return std::make_shared<Print>(val);
 }
 
-Stmt* Parser::return_stmt() {
-	Token* keyword = prev();
-	Expr* val = nullptr;
+std::shared_ptr<Stmt> Parser::return_stmt() {
+	std::shared_ptr<Token> keyword = prev();
+	std::shared_ptr<Expr> val = nullptr;
 	if (!check(SEMICOLON)) val = expression();
 	consume(SEMICOLON, "Expect ';' after return expression");
-	return new Return(keyword, val);
+	return std::make_shared<Return>(keyword, val);
 }
 
-Stmt* Parser::while_stmt() {
+std::shared_ptr<Stmt> Parser::while_stmt() {
 	consume(LEFT_PAREN, "Expect '(' after 'while'");
-	Expr* condition = expression();
+	std::shared_ptr<Expr> condition = expression();
 	consume(RIGHT_PAREN, "Expect ')' after condition");
-	Stmt* body = stmt();
-	return new While(condition, body);
+	std::shared_ptr<Stmt> body = stmt();
+	return std::make_shared<While>(condition, body);
 }
 
-std::vector<Stmt*> Parser::block() {
-	std::vector<Stmt*> stmts;
+std::vector<std::shared_ptr<Stmt>> Parser::block() {
+	std::vector<std::shared_ptr<Stmt>> stmts;
 	while (!check(RIGHT_BRACE) && !is_at_end()) stmts.push_back(declaration());
 	consume(RIGHT_BRACE, "Expect '}' after block");
 	return stmts;
 }
 
-Stmt* Parser::expr_stmt() {
-	Expr* expr = expression();
+std::shared_ptr<Stmt> Parser::expr_stmt() {
+	std::shared_ptr<Expr> expr = expression();
 	consume(SEMICOLON, "Expect ';' after value");
-	return new Expression(expr);
+	return std::make_shared<Expression>(expr);
 }
 
-Expr* Parser::expression() {
+std::shared_ptr<Expr> Parser::expression() {
 	return lambda_expr();
 }
 
-Expr* Parser::lambda_expr() {
+std::shared_ptr<Expr> Parser::lambda_expr() {
 	if (match(FN)) {
 		consume(LEFT_PAREN, "Expect '(' after anonymous fn");
-		std::vector<Token*> params;
+		std::vector<std::shared_ptr<Token>> params;
 		if (!check(RIGHT_PAREN)) {
 			do {
 				params.push_back(consume(IDENTIFIER, "Expect parameter name"));
@@ -141,97 +138,96 @@ Expr* Parser::lambda_expr() {
 		}
 		consume(RIGHT_PAREN, "Expect ')' after parameeters");
 		consume(LEFT_BRACE, "Expect '{' before fn body.");
-		std::vector<Stmt*> body = block();
-		return new LambdaExpr(params, body);
+		std::vector<std::shared_ptr<Stmt>> body = block();
+		return std::make_shared<LambdaExpr>(params, body);
 	}
 	return assignment();
 }
 
-Expr* Parser::assignment() {
-	Expr* expr = logical_or();
+std::shared_ptr<Expr> Parser::assignment() {
+	std::shared_ptr<Expr> expr = logical_or();
 	if (match(EQUAL)) {
-		Token* equals = prev();
-		Expr* val = assignment();
-		if (typeid(*expr) == typeid(Variable)) {
-			auto variable = dynamic_cast<Variable*>(expr);
-			return new Assign(variable->name, val);
+		std::shared_ptr<Token> equals = prev();
+		std::shared_ptr<Expr> val = assignment();
+		if (auto variable = std::dynamic_pointer_cast<Variable>(expr)) {
+			return std::make_shared<Assign>(variable->name, val);
 		}
 		throw RuntimeError(equals, "Invalid assignment target");
 	}
 	return expr;
 }
 
-Expr* Parser::logical_or() {
-	Expr* expr = logical_and();
+std::shared_ptr<Expr> Parser::logical_or() {
+	std::shared_ptr<Expr> expr = logical_and();
 	while (match(OR)) {
-		Token* op = prev();
-		Expr* right = logical_and();
-		expr = new Logical(expr, op, right);
+		std::shared_ptr<Token> op = prev();
+		std::shared_ptr<Expr> right = logical_and();
+		expr = std::make_shared<Logical>(expr, op, right);
 	}
 	return expr;
 }
 
-Expr* Parser::logical_and() {
-	Expr* expr = equality();
+std::shared_ptr<Expr> Parser::logical_and() {
+	std::shared_ptr<Expr> expr = equality();
 	while (match(AND)) {
-		Token* op = prev();
-		Expr* right = equality();
-		expr = new Logical(expr, op, right);
+		std::shared_ptr<Token> op = prev();
+		std::shared_ptr<Expr> right = equality();
+		expr = std::make_shared<Logical>(expr, op, right);
 	}
 	return expr;
 }
 
-Expr* Parser::equality() {
-	Expr* expr = comparison();
+std::shared_ptr<Expr> Parser::equality() {
+	std::shared_ptr<Expr> expr = comparison();
 	while (match(BANG_EQUAL, EQUAL_EQUAL)) {
-		Token* op = prev();
-		Expr* right = comparison();
-		expr = new Binary(expr, op, right);
+		std::shared_ptr<Token> op = prev();
+		std::shared_ptr<Expr> right = comparison();
+		expr = std::make_shared<Binary>(expr, op, right);
 	}
 	return expr;
 }
 
-Expr* Parser::comparison() {
-	Expr* expr = term();
+std::shared_ptr<Expr> Parser::comparison() {
+	std::shared_ptr<Expr> expr = term();
 	while (match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)) {
-		Token* op = prev();
-		Expr* right = term();
-		expr = new Binary(expr, op, right);
+		std::shared_ptr<Token> op = prev();
+		std::shared_ptr<Expr> right = term();
+		expr = std::make_shared<Binary>(expr, op, right);
 	}
 	return expr;
 }
 
-Expr* Parser::term() {
-	Expr* expr = factor();
+std::shared_ptr<Expr> Parser::term() {
+	std::shared_ptr<Expr> expr = factor();
 	while (match(MINUS, PLUS)) {
-		Token* op = prev();
-		Expr* right = factor();
-		expr = new Binary(expr, op, right);
+		std::shared_ptr<Token> op = prev();
+		std::shared_ptr<Expr> right = factor();
+		expr = std::make_shared<Binary>(expr, op, right);
 	}
 	return expr;
 }
 
-Expr* Parser::factor() {
-	Expr* expr = unary();
+std::shared_ptr<Expr> Parser::factor() {
+	std::shared_ptr<Expr> expr = unary();
 	while (match(SLASH, STAR)) {
-		Token* op = prev();
-		Expr* right = unary();
-		expr = new Binary(expr, op, right);
+		std::shared_ptr<Token> op = prev();
+		std::shared_ptr<Expr> right = unary();
+		expr = std::make_shared<Binary>(expr, op, right);
 	}
 	return expr;
 }
 
-Expr* Parser::unary() {
+std::shared_ptr<Expr> Parser::unary() {
 	if (match(BANG, MINUS)) {
-		Token* op = prev();
-		Expr* right = unary();
-		return new Unary(op, right);
+		std::shared_ptr<Token> op = prev();
+		std::shared_ptr<Expr> right = unary();
+		return std::make_shared<Unary>(op, right);
 	}
 	return call();
 }
 
-Expr* Parser::call() {
-	Expr* expr = primary();
+std::shared_ptr<Expr> Parser::call() {
+	std::shared_ptr<Expr> expr = primary();
 	for (;;) {
 		if (match(LEFT_PAREN)) expr = finish_call_expr(expr);
 		else break;
@@ -239,32 +235,32 @@ Expr* Parser::call() {
 	return expr;
 }
 
-Expr* Parser::finish_call_expr(Expr* callee) {
-	std::vector<Expr*> arguments;
+std::shared_ptr<Expr> Parser::finish_call_expr(std::shared_ptr<Expr> callee) {
+	std::vector<std::shared_ptr<Expr>> arguments;
 	if (!check(RIGHT_PAREN)) {
 		do {
 			arguments.push_back(expression());
 		} while (match(COMMA));
 	}
-	Token* paren = consume(RIGHT_PAREN, "Expect ')' after arguments");
-	return new Call(callee, paren, arguments);
+	std::shared_ptr<Token> paren = consume(RIGHT_PAREN, "Expect ')' after arguments");
+	return std::make_shared<Call>(callee, paren, arguments);
 }
 
-Expr* Parser::primary() {
-	if (match(FALSE)) return new Literal(new BoolObj(false));
-	if (match(TRUE)) return new Literal(new BoolObj(true));
-	if (match(NIL)) return new Literal(nullptr);
-	if (match(NUMBER, STRING)) return new Literal(prev()->literal);
-	if (match(IDENTIFIER)) return new Variable(prev());
+std::shared_ptr<Expr> Parser::primary() {
+	if (match(FALSE)) return std::make_shared<Literal>(std::make_shared<BoolObj>(false));
+	if (match(TRUE)) return std::make_shared<Literal>(std::make_shared<BoolObj>(true));
+	if (match(NIL)) return std::make_shared<Literal>(nullptr);
+	if (match(NUMBER, STRING)) return std::make_shared<Literal>(prev()->literal);
+	if (match(IDENTIFIER)) return std::make_shared<Variable>(prev());
 	if (match(LEFT_PAREN)) {
-		Expr* expr = expression();
+		std::shared_ptr<Expr> expr = expression();
 		consume(RIGHT_PAREN, "Expect ')' after expression");
-		return new Grouping(expr);
+		return std::make_shared<Grouping>(expr);
 	}
 	throw RuntimeError(peek(), "Expect expression");
 }
 
-Token* Parser::consume(TokenType token, std::string msg) {
+std::shared_ptr<Token> Parser::consume(TokenType token, std::string msg) {
 	if (check(token)) return advance();
 	throw RuntimeError(peek(), msg);
 }
@@ -293,7 +289,7 @@ bool Parser::check(TokenType type) {
 	return peek()->type == type;
 }
 
-Token* Parser::advance() {
+std::shared_ptr<Token> Parser::advance() {
 	if (!is_at_end()) curr++;
 	return prev();
 }
@@ -302,10 +298,10 @@ bool Parser::is_at_end() {
 	return peek()->type == _EOF;
 }
 
-Token* Parser::peek() {
+std::shared_ptr<Token> Parser::peek() {
 	return tokens[curr];
 }
 
-Token* Parser::prev() {
+std::shared_ptr<Token> Parser::prev() {
 	return tokens[curr - 1];
 }

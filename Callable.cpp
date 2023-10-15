@@ -1,14 +1,19 @@
 #include "Callable.hpp"
 
-Fn::Fn(FnStmt* stmt, Environment* closure) : stmt(stmt), closure(closure) {}
+Fn::Fn(
+		std::shared_ptr<Token> name, 
+		std::vector<std::shared_ptr<Token>> params, 
+		std::vector<std::shared_ptr<Stmt>> body, 
+		std::shared_ptr<Environment> closure
+	) : name(name), params(params), body(body), closure(closure) {}
 
-Obj* Fn::call(Interpreter* interpreter, std::vector<Obj*> arguments) {
-	Environment* env = new Environment(closure);
-	for (int i = 0; i < stmt->params.size(); i++) {
-		env->define(stmt->params[i]->lexeme, arguments[i]);
+std::shared_ptr<Obj> Fn::call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) {
+	auto env = std::make_shared<Environment>(closure);
+	for (int i = 0; i < params.size(); i++) {
+		env->define(params[i]->lexeme, arguments[i]);
 	}
 	try {
-		interpreter->execute_block(stmt->body, env);
+		interpreter->execute_block(body, env);
 	} catch (ReturnException return_value) {
 		return return_value.val;
 	}
@@ -16,18 +21,19 @@ Obj* Fn::call(Interpreter* interpreter, std::vector<Obj*> arguments) {
 }
 
 int Fn::num_params() {
-	return stmt->params.size();
+	return params.size();
 }
 
-Lambda::Lambda(LambdaExpr* expr) : expr(expr) {}
+Lambda::Lambda(std::vector<std::shared_ptr<Token>> params, std::vector<std::shared_ptr<Stmt>> body)
+	: params(params), body(body) {}
 
-Obj* Lambda::call(Interpreter* interpreter, std::vector<Obj*> arguments) {
-	Environment* env = new Environment();
-	for (int i = 0; i < expr->params.size(); i++) {
-		env->define(expr->params[i]->lexeme, arguments[i]);
+std::shared_ptr<Obj> Lambda::call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) {
+	auto env = std::make_shared<Environment>();
+	for (int i = 0; i < params.size(); i++) {
+		env->define(params[i]->lexeme, arguments[i]);
 	}
 	try {
-		interpreter->execute_block(expr->body, env);
+		interpreter->execute_block(body, env);
 	} catch (ReturnException return_value) {
 		return return_value.val;
 	}
@@ -35,14 +41,14 @@ Obj* Lambda::call(Interpreter* interpreter, std::vector<Obj*> arguments) {
 }
 
 int Lambda::num_params() {
-	return expr->params.size();
+	return params.size();
 }
 
-Obj* Clock::call(Interpreter* interpreter, std::vector<Obj*> arguments) {
+std::shared_ptr<Obj> Clock::call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) {
 	auto time = std::chrono::system_clock::now();
 	auto duration = time.time_since_epoch();
 	double seconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() / 1000.0;
-	return new DoubleObj(seconds);
+	return std::make_shared<DoubleObj>(seconds);
 }
 
 int Clock::num_params() {

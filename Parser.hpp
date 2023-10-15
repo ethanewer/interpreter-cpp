@@ -7,70 +7,69 @@
 #include <utility>
 #include "Error.hpp"
 #include "Token.hpp"
+#include "Expr.hpp"
 #include "Stmt.hpp"
 
 
 class Parser {
 public:
-	Parser(std::vector<Token*> tokens);
+	Parser(std::vector<std::shared_ptr<Token>> tokens);
 
-	std::vector<Stmt*> parse();
+	std::vector<std::shared_ptr<Stmt>> parse();
 
 private:
-	std::vector<Token*> tokens;
+	std::vector<std::shared_ptr<Token>> tokens;
 	int curr;
 
-	Stmt* declaration();
+	std::shared_ptr<Stmt> declaration();
 
-	Stmt* var_declaration();
+	std::shared_ptr<Stmt> var_declaration();
 
-	FnStmt* fn_declaration(std::string kind);
+	std::shared_ptr<FnStmt> fn_declaration(std::string kind);
 
-	Stmt* stmt();
+	std::shared_ptr<Stmt> stmt();
 
-	Stmt* for_stmt();
+	std::shared_ptr<Stmt> for_stmt();
 
-	Stmt* if_stmt();
+	std::shared_ptr<Stmt> if_stmt();
 
-	Stmt* print_stmt();
+	std::shared_ptr<Stmt> print_stmt();
 
-	Stmt* return_stmt();
+	std::shared_ptr<Stmt> return_stmt();
 
-	Stmt* while_stmt();
+	std::shared_ptr<Stmt> while_stmt();
 
-	std::vector<Stmt*> block();
+	std::vector<std::shared_ptr<Stmt>> block();
 
-	Stmt* expr_stmt();
+	std::shared_ptr<Stmt> expr_stmt();
 
-	Expr* expression();
+	std::shared_ptr<Expr> expression();
 
-	Expr* lambda_expr();
+	std::shared_ptr<Expr> lambda_expr();
 
-	Expr* fn_expr();
+	std::shared_ptr<Expr> assignment();
 
-	Expr* assignment();
+	std::shared_ptr<Expr> logical_or();
 
-	Expr* logical_or();
+	std::shared_ptr<Expr> logical_and();
 
-	Expr* logical_and();
+	std::shared_ptr<Expr> equality();
 
-	Expr* equality();
+	std::shared_ptr<Expr> comparison();
 
-	Expr* comparison();
+	std::shared_ptr<Expr> term();
 
-	Expr* term();
+	std::shared_ptr<Expr> factor();
 
-	Expr* factor();
+	std::shared_ptr<Expr> unary();
 
-	Expr* unary();
+	std::shared_ptr<Expr> call();
 
-	Expr* call();
+	std::shared_ptr<Expr> finish_call_expr(std::shared_ptr<Expr> callee);
 
-	Expr* finish_call_expr(Expr* callee);
+	std::shared_ptr<Expr> primary();
 
-	Expr* primary();
-
-	Token* consume(TokenType token, std::string msg);
+	std::shared_ptr<Token> consume(TokenType token, std::string msg);
 
 	void synchronize();
 
@@ -79,13 +78,13 @@ private:
 
 	bool check(TokenType type);
 
-	Token* advance();
+	std::shared_ptr<Token> advance();
 
 	bool is_at_end();
 
-	Token* peek();
+	std::shared_ptr<Token> peek();
 
-	Token* prev();
+	std::shared_ptr<Token> prev();
 };
 
 #endif

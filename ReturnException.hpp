@@ -6,9 +6,9 @@
 
 class ReturnException : public std::exception {
 public:
-	Obj* val;
+	std::shared_ptr<Obj> val;
 
-    ReturnException(Obj* val) : val(val) {}
+    ReturnException(std::shared_ptr<Obj> val) : val(val) {}
 };
 
 #endif

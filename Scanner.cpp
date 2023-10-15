@@ -19,13 +19,13 @@ Scanner::Scanner(std::string source) : source(source), start(0), curr(0), line(1
 	keywords["while"] = WHILE;
 }
 
-std::vector<Token*> Scanner::scan_tokens() {
-	std::vector<Token*> tokens;
+std::vector<std::shared_ptr<Token>> Scanner::scan_tokens() {
+	std::vector<std::shared_ptr<Token>> tokens;
 	while (!is_at_end()) {
 		start = curr;
 		scan_token(tokens);
 	}
-	tokens.push_back(new Token(_EOF, "", nullptr, line));
+	tokens.push_back(std::make_shared<Token>(_EOF, "", nullptr, line));
 	return tokens;
 }
 
@@ -33,7 +33,7 @@ bool Scanner::is_at_end() {
 	return curr >= source.size();
 }
 
-void Scanner::scan_token(std::vector<Token*>& tokens) {
+void Scanner::scan_token(std::vector<std::shared_ptr<Token>>& tokens) {
 	char c = advance();
 	switch (c) {
 		case '(': add_token(tokens, LEFT_PAREN); break;
@@ -77,13 +77,13 @@ char Scanner::advance() {
 	return source[curr++];
 }
 
-void Scanner::add_token(std::vector<Token*>& tokens, TokenType type) {
+void Scanner::add_token(std::vector<std::shared_ptr<Token>>& tokens, TokenType type) {
 	add_token(tokens, type, nullptr);
 }
 
-void Scanner::add_token(std::vector<Token*>& tokens, TokenType type, Obj* literal) {
+void Scanner::add_token(std::vector<std::shared_ptr<Token>>& tokens, TokenType type, std::shared_ptr<Obj> literal) {
 	std::string text = source.substr(start, curr - start);
-	tokens.push_back(new Token(type, text, literal, line));
+	tokens.push_back(std::make_shared<Token>(type, text, literal, line));
 }
 
 bool Scanner::match(char expected) {
@@ -103,7 +103,7 @@ char Scanner::peek_next() {
 	return source[curr + 1];
 }
 
-void Scanner::string(std::vector<Token*>& tokens, char quote) {
+void Scanner::string(std::vector<std::shared_ptr<Token>>& tokens, char quote) {
 	while (peek() != quote && !is_at_end()) {
 		if (peek() == '\n') line++;
 		advance();
@@ -115,7 +115,7 @@ void Scanner::string(std::vector<Token*>& tokens, char quote) {
 	}
 
 	advance();
-	add_token(tokens, STRING, new StringObj(source.substr(start + 1, (curr - 1) - (start + 1))));
+	add_token(tokens, STRING, std::make_shared<StringObj>(source.substr(start + 1, (curr - 1) - (start + 1))));
 }
 
 bool Scanner::is_digit(char c) {
@@ -130,14 +130,14 @@ bool Scanner::is_alpha_numeric(char c) {
 	return is_alpha(c) || is_digit(c);
 }
 
-void Scanner::number(std::vector<Token*>& tokens) {
+void Scanner::number(std::vector<std::shared_ptr<Token>>& tokens) {
 	while (is_digit(peek())) advance();
 	if (peek() == '.' && is_digit(peek_next())) advance();
 	while (is_digit(peek())) advance();
-	add_token(tokens, NUMBER, new DoubleObj(std::stod(source.substr(start, curr - start))));
+	add_token(tokens, NUMBER, std::make_shared<DoubleObj>(std::stod(source.substr(start, curr - start))));
 }
 
-void Scanner::identifier(std::vector<Token*>& tokens) {
+void Scanner::identifier(std::vector<std::shared_ptr<Token>>& tokens) {
 	while (is_alpha_numeric(peek())) advance();
 	std::string text = source.substr(start, curr - start);
 	if (keywords.count(text)) add_token(tokens, keywords[text]);

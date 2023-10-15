@@ -12,19 +12,19 @@ class Environment {
 public:
 	Environment();
 	
-	Environment(Environment* enclosing);
+	Environment(std::shared_ptr<Environment> enclosing);
 
-	void define(std::string name, Obj* val);
+	void define(std::string name, std::shared_ptr<Obj> val);
 
-	void assign(Token* name, Obj* val);
+	void assign(std::shared_ptr<Token> name, std::shared_ptr<Obj> val);
 
-	Obj* get(Token* name);
+	std::shared_ptr<Obj> get(std::shared_ptr<Token> name);
 
-	~Environment();
+	~Environment() {}
 
 private:
-	Environment* enclosing;
-	std::unordered_map<std::string, Obj*> values;
+	std::shared_ptr<Environment> enclosing;
+	std::unordered_map<std::string, std::shared_ptr<Obj>> values;
 };
 
 #endif

@@ -21,15 +21,11 @@ class Token {
 public:
 	TokenType type;
 	std::string lexeme;
-	Obj* literal;
+	std::shared_ptr<Obj> literal;
 	int line;
 
-	Token(TokenType type, std::string lexeme, Obj* literal, int line) 
+	Token(TokenType type, std::string lexeme, std::shared_ptr<Obj> literal, int line) 
 		: type(type), lexeme(lexeme), literal(literal), line(line) {}
-	
-	~Token() {
-		if (literal != nullptr && !literal->has_ref) delete literal;
-	}
 };
 
 #endif
