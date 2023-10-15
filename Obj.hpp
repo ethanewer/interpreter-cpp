@@ -3,38 +3,49 @@
 
 #include <string>
 #include <vector>
-#include "Obj.hpp"
+#include <unordered_map>
 
-class Obj {
-public:
+struct Obj {
     Obj() {} 
+
+    std::string to_string() {
+        return "<obj>";
+    }
     
     virtual ~Obj() {}
 };
 
-class BoolObj : public Obj {
-public:
+struct BoolObj : public Obj {
     bool val;
     
     BoolObj(bool val) : val(val) {}
 
-    Obj* clone() {
-        return new BoolObj(val);
-    } 
+    std::string to_string() {
+        return val ? "true" : "false";
+    }
 };
 
-class DoubleObj : public Obj {
-public:
+struct DoubleObj : public Obj {
     double val;
     
     DoubleObj(double val) : val(val) {}
+
+    std::string to_string() {
+        auto num_str = std::to_string(val);
+		while (num_str.back() == '0') num_str.pop_back();
+		if (num_str.back() == '.') num_str.pop_back();
+        return num_str;
+    }
 };
 
-class StringObj : public Obj {
-public:
+struct StringObj : public Obj {
     std::string val;
     
     StringObj(std::string val) : val(val) {}
+
+    std::string to_string() {
+        return val;
+    }
 };
 
 #endif

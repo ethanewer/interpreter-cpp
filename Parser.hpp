@@ -23,6 +23,8 @@ private:
 
 	std::shared_ptr<Stmt> declaration();
 
+	std::shared_ptr<Stmt> class_declaration();
+
 	std::shared_ptr<Stmt> var_declaration();
 
 	std::shared_ptr<FnStmt> fn_declaration(std::string kind);

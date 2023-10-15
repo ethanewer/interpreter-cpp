@@ -17,6 +17,8 @@ class Variable;
 class Assign;
 class Call;
 class LambdaExpr;
+class Get;
+class Set;
 
 class Expr {
 public: 
@@ -31,6 +33,8 @@ public:
         virtual std::shared_ptr<Obj> visit_assign_expr(Assign* expr) = 0;
         virtual std::shared_ptr<Obj> visit_call_expr(Call* expr) = 0;
         virtual std::shared_ptr<Obj> visit_lambda_expr(LambdaExpr* expr) = 0;
+        virtual std::shared_ptr<Obj> visit_get_expr(Get* expr) = 0;
+        virtual std::shared_ptr<Obj> visit_set_expr(Set* expr) = 0;
 	};
 
 	virtual std::shared_ptr<Obj> accept(Visitor* visitor) = 0;
@@ -146,6 +150,32 @@ public:
 	std::shared_ptr<Obj> accept(Visitor* visitor) override {
 		return visitor->visit_lambda_expr(this);
 	}
+};
+
+class Get : public Expr {
+public:
+    std::shared_ptr<Expr> obj;
+    std::shared_ptr<Token> name;
+    
+    Get(std::shared_ptr<Expr> obj, std::shared_ptr<Token> name) : obj(obj), name(name) {}
+
+    std::shared_ptr<Obj> accept(Visitor* visitor) override {
+        return visitor->visit_get_expr(this);
+    }
+};
+
+class Set : public Expr {
+public:
+    std::shared_ptr<Expr> obj;
+    std::shared_ptr<Token> name;
+    std::shared_ptr<Expr> val;
+    
+    Set(std::shared_ptr<Expr> obj, std::shared_ptr<Token> name, std::shared_ptr<Expr> val) 
+        : obj(obj), name(name), val(val) {}
+
+    std::shared_ptr<Obj> accept(Visitor* visitor) override {
+        return visitor->visit_set_expr(this);
+    }
 };
 
 #endif

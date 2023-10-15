@@ -14,5 +14,6 @@ $(EXEC): $(OBJ_FILES)
 
 clean:
 	rm -f $(EXEC) $(OBJ_FILES)
+	clear
 
 .PHONY: all clean

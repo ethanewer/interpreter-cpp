@@ -54,3 +54,35 @@ std::shared_ptr<Obj> Clock::call(Interpreter* interpreter, std::vector<std::shar
 int Clock::num_params() {
 	return 0;
 }
+
+Class::Class(std::string name, std::shared_ptr<std::unordered_map<std::string, std::shared_ptr<Fn>>> methods) 
+	: name(name), methods(methods) {}
+
+std::shared_ptr<Obj> Class::call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments)  {
+	return std::make_shared<Instance>(name, methods);
+}
+
+int Class::num_params() {
+	return 0;
+}
+
+std::string Class::to_string() {
+	return "<class " + name + ">";
+}
+
+Instance::Instance(std::string type, std::shared_ptr<std::unordered_map<std::string,std::shared_ptr<Fn>>> methods)
+	: type(type), methods(methods) {}
+
+std::shared_ptr<Obj> Instance::get(std::shared_ptr<Token> name) {
+	if (feilds.count(name->lexeme)) return feilds[name->lexeme];
+	if (methods->count(name->lexeme)) return (*methods)[name->lexeme];
+	throw RuntimeError(name, "Undefined property '" + name->lexeme + "'");
+}
+
+void Instance::set(std::shared_ptr<Token> name, std::shared_ptr<Obj> val) {
+	feilds[name->lexeme] = val;
+}
+
+std::string Instance::to_string() {
+	return "<instance of class " + type + ">";
+}

@@ -158,11 +158,28 @@ std::shared_ptr<Obj> Interpreter::visit_call_expr(Call* expr) {
 	if (auto fn = std::dynamic_pointer_cast<Callable>(callee)) {
 		if (arguments.size() != fn->num_params()) throw RuntimeError(expr->paren, "Incorect number of arguments");
 		return fn->call(this, arguments);
-	} else throw RuntimeError(expr->paren, "Object is not callable");
+	} 
+	throw RuntimeError(expr->paren, "Object is not callable");
 }
 
 std::shared_ptr<Obj> Interpreter::visit_lambda_expr(LambdaExpr* expr) {
 	return std::make_shared<Lambda>(expr->params, expr->body);
+}
+
+std::shared_ptr<Obj> Interpreter::visit_get_expr(Get* expr) {
+	std::shared_ptr<Obj> obj = evaluate(expr->obj);
+	if (auto i = std::dynamic_pointer_cast<Instance>(obj)) return i->get(expr->name);
+	throw RuntimeError(expr->name, "Only instances have properties");
+}
+
+std::shared_ptr<Obj> Interpreter::visit_set_expr(Set* expr) {
+	std::shared_ptr<Obj> obj = evaluate(expr->obj);
+	if (auto instance = std::dynamic_pointer_cast<Instance>(obj)) {
+		std::shared_ptr<Obj> val = evaluate(expr->val);
+		instance->set(expr->name, val);
+		return val;
+	}
+	throw RuntimeError(expr->name, "Only instances have feilds");
 }
 
 void Interpreter::visit_expression_stmt(Expression* stmt) {
@@ -202,6 +219,16 @@ void Interpreter::visit_return_stmt(Return* stmt) {
 	std::shared_ptr<Obj> val = nullptr;
 	if (stmt->val != nullptr) val = evaluate(stmt->val);
 	throw ReturnException(val);
+}
+
+void Interpreter::visit_class_stmt(ClassStmt* stmt) {
+	env->define(stmt->name->lexeme, nullptr);
+	auto methods = std::make_shared<std::unordered_map<std::string, std::shared_ptr<Fn>>>();
+	for (auto m : stmt->methods) {
+		auto fn = std::make_shared<Fn>(m->name, m->params, m->body, env);
+		(*methods)[m->name->lexeme] = fn;
+	}
+	env->assign(stmt->name, std::make_shared<Class>(stmt->name->lexeme, methods));
 }
 
 std::shared_ptr<Obj> Interpreter::evaluate(std::shared_ptr<Expr> expr) {
@@ -248,21 +275,14 @@ void Interpreter::check_num_operands(std::shared_ptr<Token> op, std::shared_ptr<
 	throw RuntimeError(op, "Operands must be a number"); 
 }
 
-std::string Interpreter::stringify(std::shared_ptr<Obj> val) {
-	if (val == nullptr) return "nil";
-	if (auto double_val = std::dynamic_pointer_cast<DoubleObj>(val)) {
-		auto num_str = std::to_string(double_val->val);
-		while (num_str.back() == '0') num_str.pop_back();
-		if (num_str.back() == '.') num_str.pop_back();
-		return num_str;
-	}
-	if (auto bool_val = std::dynamic_pointer_cast<BoolObj>(val)) {
-		return bool_val->val ? "true" : "false";
-	}
-	if (auto string_val = std::dynamic_pointer_cast<StringObj>(val)) {
-		return string_val->val;
-	}
-	return "__Obj__";
+std::string Interpreter::stringify(std::shared_ptr<Obj> obj) {
+	if (obj == nullptr) return "nil";
+	if (auto val = std::dynamic_pointer_cast<BoolObj>(obj)) return val->to_string();
+	if (auto val = std::dynamic_pointer_cast<DoubleObj>(obj)) return val->to_string();
+	if (auto val = std::dynamic_pointer_cast<StringObj>(obj)) return val->to_string();
+	if (auto val = std::dynamic_pointer_cast<Class>(obj)) return val->to_string();
+	if (auto val = std::dynamic_pointer_cast<Instance>(obj)) return val->to_string();
+    return obj->to_string();
 }
 
 void Interpreter::resolve(Expr* expr, int depth) {

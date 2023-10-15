@@ -43,6 +43,10 @@ public:
 
 	std::shared_ptr<Obj> visit_lambda_expr(LambdaExpr* expr) override;
 
+	std::shared_ptr<Obj> visit_get_expr(Get* expr) override;
+	
+	std::shared_ptr<Obj> visit_set_expr(Set* expr) override;
+
 	void visit_expression_stmt(Expression* stmt) override;
 
 	void visit_print_stmt(Print* stmt) override;
@@ -58,6 +62,8 @@ public:
 	void visit_fn_stmt(FnStmt* stmt) override;
 
 	void visit_return_stmt(Return* stmt) override;
+	
+	void visit_class_stmt(ClassStmt* stmt) override;
 
 	void resolve(Expr* expr, int depth);
 

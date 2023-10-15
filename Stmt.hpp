@@ -12,6 +12,7 @@ class If;
 class While;
 class FnStmt;
 class Return;
+class ClassStmt;
 
 class Stmt {
 public:
@@ -25,6 +26,7 @@ public:
 		virtual void visit_while_stmt(While* stmt) = 0;
 		virtual void visit_fn_stmt(FnStmt* stmt) = 0;
 		virtual void visit_return_stmt(Return* stmt) = 0;
+		virtual void visit_class_stmt(ClassStmt* stmt) = 0;
 	};
 
 	virtual void accept(Visitor* visitor) = 0;
@@ -110,7 +112,7 @@ public:
 	std::vector<std::shared_ptr<Stmt>> body;
 
 	FnStmt(std::shared_ptr<Token> name, std::vector<std::shared_ptr<Token>> params, std::vector<std::shared_ptr<Stmt>> body)
-	 : name(name), params(params), body(body) {}
+		: name(name), params(params), body(body) {}
 
 	void accept(Visitor* visitor) override {
 		visitor->visit_fn_stmt(this);
@@ -126,6 +128,19 @@ public:
 
 	void accept(Visitor* visitor) override {
 		visitor->visit_return_stmt(this);
+	}
+};
+
+class ClassStmt : public Stmt {
+public:
+	std::shared_ptr<Token> name;
+	std::vector<std::shared_ptr<FnStmt>> methods;
+	
+	ClassStmt(std::shared_ptr<Token> name, std::vector<std::shared_ptr<FnStmt>> methods)
+		: name(name), methods(methods) {}
+
+	void accept(Visitor* visitor) override {
+		visitor->visit_class_stmt(this);
 	}
 };
 

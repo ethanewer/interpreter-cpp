@@ -10,9 +10,19 @@ std::vector<std::shared_ptr<Stmt>> Parser::parse() {
 }
 
 std::shared_ptr<Stmt> Parser::declaration() {
+	if (match(CLASS)) return class_declaration();
 	if (match(LET)) return var_declaration();
 	if (match(FN)) return fn_declaration("fn");
 	return stmt();
+}
+
+std::shared_ptr<Stmt> Parser::class_declaration() {
+	std::shared_ptr<Token> name = consume(IDENTIFIER, "Expect class name");
+	consume(LEFT_BRACE, "Expect '{' before class body");
+	std::vector<std::shared_ptr<FnStmt>> methods;
+	while (!check(RIGHT_BRACE)) methods.push_back(fn_declaration("method"));
+	consume(RIGHT_BRACE, "Expect '}' after class body");
+	return std::make_shared<ClassStmt>(name, methods);
 }
 
 std::shared_ptr<Stmt> Parser::var_declaration() {
@@ -33,7 +43,7 @@ std::shared_ptr<FnStmt> Parser::fn_declaration(std::string kind) {
 		} while (match(COMMA));
 	}
 	consume(RIGHT_PAREN, "Expect ')' after parameters");
-	consume(LEFT_BRACE, "Expect '{' before " + kind + " body.");
+	consume(LEFT_BRACE, "Expect '{' before " + kind + " body");
 	std::vector<std::shared_ptr<Stmt>> body = block();
 	return std::make_shared<FnStmt>(name, params, body);
 }
@@ -157,6 +167,8 @@ std::shared_ptr<Expr> Parser::assignment() {
 		std::shared_ptr<Expr> val = assignment();
 		if (auto variable = std::dynamic_pointer_cast<Variable>(expr)) {
 			return std::make_shared<Assign>(variable->name, val);
+		} else if (auto get = std::dynamic_pointer_cast<Get>(expr)) {
+			return std::make_shared<Set>(get->obj, get->name, val);
 		}
 		throw RuntimeError(equals, "Invalid assignment target");
 	}
@@ -235,8 +247,14 @@ std::shared_ptr<Expr> Parser::unary() {
 std::shared_ptr<Expr> Parser::call() {
 	std::shared_ptr<Expr> expr = primary();
 	for (;;) {
-		if (match(LEFT_PAREN)) expr = finish_call_expr(expr);
-		else break;
+		if (match(LEFT_PAREN)) {
+			expr = finish_call_expr(expr);
+		} else if (match(DOT)) {
+			std::shared_ptr<Token>  name = consume(IDENTIFIER, "Expect property after '.'");
+			expr = std::make_shared<Get>(expr, name);
+		} else {
+			break;
+		}
 	}
 	return expr;
 }

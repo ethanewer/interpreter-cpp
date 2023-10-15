@@ -56,6 +56,17 @@ std::shared_ptr<Obj> Resolver::visit_lambda_expr(LambdaExpr* expr) {
 	return nullptr;
 }
 
+std::shared_ptr<Obj> Resolver::visit_get_expr(Get* expr) {
+	resolve(expr->obj);
+	return nullptr;
+}
+
+std::shared_ptr<Obj> Resolver::visit_set_expr(Set* expr) {
+	resolve(expr->val);
+	resolve(expr->obj);
+	return nullptr;
+}
+
 void Resolver::visit_expression_stmt(Expression* stmt) {
 	resolve(stmt->expression);
 }
@@ -96,6 +107,12 @@ void Resolver::visit_fn_stmt(FnStmt* stmt) {
 void Resolver::visit_return_stmt(Return* stmt) {
 	if (curr_fn == NONE) throw RuntimeError(stmt->keyword, "Can't return from top level");
 	if (stmt->val != nullptr) resolve(stmt->val); 
+}
+
+void Resolver::visit_class_stmt(ClassStmt* stmt) {
+	declare(stmt->name);
+	for (auto m : stmt->methods) resolve_fn_stmt(m.get(), METHOD);
+	define(stmt->name);
 }
 
 void Resolver::resolve(std::vector<std::shared_ptr<Stmt>>& stmts) {
@@ -151,7 +168,7 @@ void Resolver::resolve_fn_stmt(FnStmt* fn, FnType type) {
 	curr_fn = enclosing_fn;
 }
 
-void Resolver::resolve_lambda_expr(LambdaExpr * lambda, FnType type) {
+void Resolver::resolve_lambda_expr(LambdaExpr* lambda, FnType type) {
 	FnType enclosing_fn = curr_fn;
 	curr_fn = type;
 	begin_scope();
