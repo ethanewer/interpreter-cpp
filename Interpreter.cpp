@@ -85,27 +85,22 @@ std::shared_ptr<Obj> Interpreter::visit_binary_expr(Binary* expr) {
 			double_right = std::dynamic_pointer_cast<DoubleObj>(right);
 			return std::make_shared<BoolObj>(double_left->val <= double_right->val);
 		case PLUS:
-			if (typeid(*left) == typeid(DoubleObj) && typeid(*right) == typeid(DoubleObj)) {
-				double_left = std::dynamic_pointer_cast<DoubleObj>(left);
-				double_right = std::dynamic_pointer_cast<DoubleObj>(right);
-				return std::make_shared<DoubleObj>(double_left->val + double_right->val);
+			if ((double_left = std::dynamic_pointer_cast<DoubleObj>(left))) {
+				if ((double_right = std::dynamic_pointer_cast<DoubleObj>(right))) {
+					return std::make_shared<DoubleObj>(double_left->val + double_right->val);
+				}
 			} 
-			if (typeid(*left) == typeid(StringObj) && typeid(*right) == typeid(StringObj)) {
-				string_left = std::dynamic_pointer_cast<StringObj>(left);
-				string_right = std::dynamic_pointer_cast<StringObj>(right);
-				return std::make_shared<StringObj>(string_left->val + string_right->val);
+			if ((string_left = std::dynamic_pointer_cast<StringObj>(left))) {
+				if ((string_right = std::dynamic_pointer_cast<StringObj>(right))) {
+					return std::make_shared<StringObj>(string_left->val + string_right->val);
+				}
+				if ((double_right = std::dynamic_pointer_cast<DoubleObj>(right))) {
+					return std::make_shared<StringObj>(string_left->val + stringify(double_right));
+				}
+				if ((bool_right = std::dynamic_pointer_cast<BoolObj>(right))) {
+					return std::make_shared<StringObj>(string_left->val + stringify(bool_right));
+				}
 			} 
-			if (typeid(*left) == typeid(StringObj) && typeid(*right) == typeid(DoubleObj)) {
-				string_left = std::dynamic_pointer_cast<StringObj>(left);
-				double_right = std::dynamic_pointer_cast<DoubleObj>(right);
-				return std::make_shared<StringObj>(string_left->val + std::to_string(double_right->val));
-			} 
-			if (typeid(*left) == typeid(StringObj) && typeid(*right) == typeid(BoolObj)) {
-				string_left = std::dynamic_pointer_cast<StringObj>(left);
-				bool_right = std::dynamic_pointer_cast<BoolObj>(right);
-				std::string bool_str = bool_right->val ? "true" : "false";
-				return std::make_shared<StringObj>(string_left->val + bool_str);
-			}
 			throw  RuntimeError(expr->op, "Operands can not be added with '+'");
 		case MINUS:
 			check_num_operands(expr->op, left, right);
@@ -209,54 +204,52 @@ void Interpreter::execute(std::shared_ptr<Stmt> stmt) {
 
 bool Interpreter::is_truthy(std::shared_ptr<Obj> val) {
 	if (val == nullptr) return false;
-	if (typeid(*val) == typeid(BoolObj)) {
-		auto bool_val = std::dynamic_pointer_cast<BoolObj>(val);
-		return bool_val->val;
-	}
+	if (auto bool_val = std::dynamic_pointer_cast<BoolObj>(val)) return bool_val->val;
 	return true;
 }
 
 bool Interpreter::is_equal(std::shared_ptr<Obj> a, std::shared_ptr<Obj> b) {
 	if (a == nullptr && b == nullptr) return true;
 	if (a == nullptr || b == nullptr) return false;
-	if (typeid(*a) == typeid(BoolObj) && typeid(*b) == typeid(BoolObj)) {
-		auto bool_a = std::dynamic_pointer_cast<BoolObj>(a);
-		auto bool_b = std::dynamic_pointer_cast<BoolObj>(b);
-		return bool_a->val == bool_b->val;
+	if (auto bool_a = std::dynamic_pointer_cast<BoolObj>(a)) {
+		if (auto bool_b = std::dynamic_pointer_cast<BoolObj>(b)) {
+			return bool_a->val == bool_b->val;
+		}
 	}
-	if (typeid(*a) == typeid(DoubleObj) && typeid(*b) == typeid(DoubleObj)) {
-		auto double_a = std::dynamic_pointer_cast<DoubleObj>(a);
-		auto double_b = std::dynamic_pointer_cast<DoubleObj>(b);
-		return double_a->val == double_b->val;
+	if (auto double_a = std::dynamic_pointer_cast<DoubleObj>(a)) {
+		if (auto double_b = std::dynamic_pointer_cast<DoubleObj>(b)) {
+			return double_a->val == double_b->val;
+		}
 	}
 	return false;
 }
 
 void Interpreter::check_num_operand(std::shared_ptr<Token> op, std::shared_ptr<Obj> operand) {
-	if (typeid(*operand) == typeid(DoubleObj)) return;
+	if (auto _ = std::dynamic_pointer_cast<DoubleObj>(operand)) return;
 	throw RuntimeError(op, "Operand must be a number"); 
 }
 
 void Interpreter::check_num_operands(std::shared_ptr<Token> op, std::shared_ptr<Obj> a, std::shared_ptr<Obj> b) {
-	if (typeid(*a) == typeid(DoubleObj) && typeid(*b) == typeid(DoubleObj)) return;
+	if (auto _ = std::dynamic_pointer_cast<DoubleObj>(a)) {
+		if (auto _ = std::dynamic_pointer_cast<DoubleObj>(b)) {
+			return;
+		}
+	}
 	throw RuntimeError(op, "Operands must be a number"); 
 }
 
 std::string Interpreter::stringify(std::shared_ptr<Obj> val) {
 	if (val == nullptr) return "nil";
-	if (typeid(*val) == typeid(DoubleObj)) {
-		auto double_val = std::dynamic_pointer_cast<DoubleObj>(val);
+	if (auto double_val = std::dynamic_pointer_cast<DoubleObj>(val)) {
 		auto num_str = std::to_string(double_val->val);
 		while (num_str.back() == '0') num_str.pop_back();
 		if (num_str.back() == '.') num_str.pop_back();
 		return num_str;
 	}
-	if (typeid(*val) == typeid(BoolObj)) {
-		auto bool_val = std::dynamic_pointer_cast<BoolObj>(val);
+	if (auto bool_val = std::dynamic_pointer_cast<BoolObj>(val)) {
 		return bool_val->val ? "true" : "false";
 	}
-	if (typeid(*val) == typeid(StringObj)) {
-		auto string_val = std::dynamic_pointer_cast<StringObj>(val);
+	if (auto string_val = std::dynamic_pointer_cast<StringObj>(val)) {
 		return string_val->val;
 	}
 	return "__Obj__";

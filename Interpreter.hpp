@@ -59,8 +59,6 @@ public:
 
 	void visit_return_stmt(Return* stmt) override;
 
-	~Interpreter() {}
-
 private:
 	std::shared_ptr<Environment> env;
 

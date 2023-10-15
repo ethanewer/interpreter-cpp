@@ -20,8 +20,6 @@ public:
 
 	std::shared_ptr<Obj> get(std::shared_ptr<Token> name);
 
-	~Environment() {}
-
 private:
 	std::shared_ptr<Environment> enclosing;
 	std::unordered_map<std::string, std::shared_ptr<Obj>> values;
