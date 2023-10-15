@@ -7,9 +7,7 @@
 
 class Obj {
 public:
-    bool has_ref;
-    
-    Obj() : has_ref(false) {} 
+    Obj() {} 
     
     virtual ~Obj() {}
 };

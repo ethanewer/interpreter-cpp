@@ -18,7 +18,11 @@ public:
 
 	void assign(std::shared_ptr<Token> name, std::shared_ptr<Obj> val);
 
+	void assign_at(int dist, std::shared_ptr<Token> name, std::shared_ptr<Obj> val);
+
 	std::shared_ptr<Obj> get(std::shared_ptr<Token> name);
+
+	std::shared_ptr<Obj> get_at(int dist, std::string name);
 
 private:
 	std::shared_ptr<Environment> enclosing;

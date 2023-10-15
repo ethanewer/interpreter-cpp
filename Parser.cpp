@@ -56,7 +56,7 @@ std::shared_ptr<Stmt> Parser::for_stmt() {
 	else if (match(LET)) initializer = var_declaration();
 	else initializer = expr_stmt();
 
-	std::shared_ptr<Expr> condition;
+	std::shared_ptr<Expr> condition = nullptr;
 	if (!check(SEMICOLON)) condition = expression();
 	else condition = std::make_shared<Literal>(std::make_shared<BoolObj>(true));
 	consume(SEMICOLON, "Expect ';' after for loop condition");
@@ -68,12 +68,18 @@ std::shared_ptr<Stmt> Parser::for_stmt() {
 	std::shared_ptr<Stmt> body = stmt();
 
 	if (increment != nullptr) {
-		body = std::make_shared<Block>(std::vector<std::shared_ptr<Stmt>> {body, std::make_shared<Expression>(increment)});
+		body = std::make_shared<Block>(std::vector<std::shared_ptr<Stmt>> {
+			body, std::make_shared<Expression>(increment)
+		});
 	}
 
 	body = std::make_shared<While>(condition, body);
 	
-	if (initializer != nullptr) body = std::make_shared<Block>(std::vector<std::shared_ptr<Stmt>> {initializer, body});
+	if (initializer != nullptr) {
+		body = std::make_shared<Block>(std::vector<std::shared_ptr<Stmt>> {
+			initializer, body
+		});
+	}
 	
 	return body;
 }

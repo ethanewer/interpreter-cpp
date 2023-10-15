@@ -10,6 +10,7 @@
 #include "Token.hpp"
 #include "Scanner.hpp"
 #include "Parser.hpp"
+#include "Resolver.hpp"
 
 Interpreter interpreter;
 bool had_error;
@@ -20,8 +21,11 @@ void run(std::string source) {
 	try {
 		Scanner scanner(source);
 		std::vector<std::shared_ptr<Token>> tokens = scanner.scan_tokens();
+		
 		Parser parser(tokens);
 		stmts = parser.parse();
+		Resolver resolver(&interpreter);
+		resolver.resolve(stmts);
 		interpreter.interpret(stmts);
 	} catch (SyntaxError& e) {
 		std::cout << "Syntax error: [line: " << e.line << "] " << e.what() << '\n';

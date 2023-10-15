@@ -1,29 +1,18 @@
-#ifndef INTERPRETER
-#define INTERPRETER
+#ifndef RESOLVER
+#define RESOLVER
 
 #include <vector>
+#include <unordered_map>
 #include <iostream>
-#include <typeinfo>
-#include <string>
-#include <algorithm>
 #include "Expr.hpp"
 #include "Stmt.hpp"
-#include "Error.hpp"
-#include "Token.hpp"
-#include "Obj.hpp"
-#include "Environment.hpp"
-#include "Callable.hpp"
-#include "ReturnException.hpp"
+#include "Interpreter.hpp"
 
-class Interpreter : Expr::Visitor, Stmt::Visitor {
+enum FnType { NONE, FUNCTION };
+
+class Resolver : Expr::Visitor, Stmt::Visitor {
 public:
-	std::shared_ptr<Environment> globals;
-	
-	Interpreter();
-
-	void interpret(std::vector<std::shared_ptr<Stmt>> stmts);
-
-	void execute_block(std::vector<std::shared_ptr<Stmt>>& stmts, std::shared_ptr<Environment> env);
+	Resolver(Interpreter* interpreter);
 
 	std::shared_ptr<Obj> visit_literal_expr(Literal* expr) override;
 
@@ -59,25 +48,30 @@ public:
 
 	void visit_return_stmt(Return* stmt) override;
 
-	void resolve(Expr* expr, int depth);
+	void resolve(std::vector<std::shared_ptr<Stmt>>& stmts);
 
 private:
-	std::shared_ptr<Environment> env;
-	std::unordered_map<Expr*, int> locals;
+	Interpreter* interpreter;
+	std::vector<std::unordered_map<std::string, bool>> scopes;
+	FnType curr_fn;
 
-	std::shared_ptr<Obj> evaluate(std::shared_ptr<Expr> expr);
+	void resolve(std::shared_ptr<Stmt> stmt);
 
-	void execute(std::shared_ptr<Stmt> stmt);
+	void resolve(std::shared_ptr<Expr> expr);
 
-	bool is_truthy(std::shared_ptr<Obj> val);
+	void begin_scope();
 
-	bool is_equal(std::shared_ptr<Obj> a, std::shared_ptr<Obj> b);
+	void end_scope();
 
-	void check_num_operand(std::shared_ptr<Token> op, std::shared_ptr<Obj> operand);
+	void declare(std::shared_ptr<Token> name);
 
-	void check_num_operands(std::shared_ptr<Token> op, std::shared_ptr<Obj> a, std::shared_ptr<Obj> b);
+	void define(std::shared_ptr<Token> name);
 
-	std::string stringify(std::shared_ptr<Obj> val);
+	void resolve_local(Expr* expr, std::shared_ptr<Token> name);
+
+	void resolve_fn_stmt(FnStmt* fn, FnType type);
+	
+	void resolve_lambda_expr(LambdaExpr* fn, FnType type);
 };
 
 #endif

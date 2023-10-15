@@ -122,12 +122,22 @@ std::shared_ptr<Obj> Interpreter::visit_binary_expr(Binary* expr) {
 }
 
 std::shared_ptr<Obj> Interpreter::visit_variable_expr(Variable* expr) {
-	return env->get(expr->name);
+	if (locals.count(expr)) {
+		int dist = locals[expr];
+		return env->get_at(dist, expr->name->lexeme);
+	} else {
+		return globals->get(expr->name);
+	}
 }
 
 std::shared_ptr<Obj> Interpreter::visit_assign_expr(Assign* expr) {
 	std::shared_ptr<Obj> val = evaluate(expr->val);
-	env->assign(expr->name, val);
+	if (locals.count(expr)) {
+		int dist = locals[expr];
+		env->assign_at(dist, expr->name, val);
+	} else {
+		globals->assign(expr->name, val);
+	}
 	return val;
 }
 
@@ -253,4 +263,8 @@ std::string Interpreter::stringify(std::shared_ptr<Obj> val) {
 		return string_val->val;
 	}
 	return "__Obj__";
+}
+
+void Interpreter::resolve(Expr* expr, int depth) {
+	locals[expr] = depth;
 }
