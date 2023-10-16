@@ -4,13 +4,14 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <functional>
 
 struct Obj {
-    Obj() {} 
+    Obj();
 
-    std::string to_string() {
-        return "<obj>";
-    }
+    std::string to_string();
+
+    size_t hash();
     
     virtual ~Obj() {}
 };
@@ -18,34 +19,25 @@ struct Obj {
 struct BoolObj : public Obj {
     bool val;
     
-    BoolObj(bool val) : val(val) {}
+    BoolObj(bool val);
 
-    std::string to_string() {
-        return val ? "true" : "false";
-    }
+    std::string to_string();
 };
 
 struct DoubleObj : public Obj {
     double val;
     
-    DoubleObj(double val) : val(val) {}
+    DoubleObj(double val);
 
-    std::string to_string() {
-        auto num_str = std::to_string(val);
-		while (num_str.back() == '0') num_str.pop_back();
-		if (num_str.back() == '.') num_str.pop_back();
-        return num_str;
-    }
+    std::string to_string();
 };
 
 struct StringObj : public Obj {
     std::string val;
     
-    StringObj(std::string val) : val(val) {}
+    StringObj(std::string val);
 
-    std::string to_string() {
-        return val;
-    }
+    std::string to_string();
 };
 
 #endif

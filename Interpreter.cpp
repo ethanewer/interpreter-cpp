@@ -4,6 +4,8 @@ Interpreter::Interpreter() {
 	globals = std::make_shared<Environment>();
 	env = globals;
 	globals->define("clock", std::make_shared<Clock>());
+	globals->define("List", std::make_shared<List>());
+	globals->define("Map", std::make_shared<Map>());
 }
 
 void Interpreter::interpret(std::vector<std::shared_ptr<Stmt>> stmts) {
@@ -232,7 +234,7 @@ void Interpreter::visit_return_stmt(Return* stmt) {
 
 void Interpreter::visit_class_stmt(ClassStmt* stmt) {
 	env->define(stmt->name->lexeme, nullptr);
-	auto methods = std::make_shared<std::unordered_map<std::string, std::shared_ptr<Fn>>>();
+	auto methods = std::make_shared<std::unordered_map<std::string, std::shared_ptr<Callable>>>();
 	for (auto m : stmt->methods) {
 		auto fn = std::make_shared<Fn>(m->name, m->params, m->body, env);
 		(*methods)[m->name->lexeme] = fn;

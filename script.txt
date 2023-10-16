@@ -1,89 +1,33 @@
-class Node {
-	init(val) {
-		this.val = val;
-		this.next = nil;
-	}
-}
-
-class List {
-	init() {
-		this.size = 0;
-		this.head = nil;
-		this.tail = nil;
-	}
-
-	get(i) {
-		if (i >= this.size) {
-			print 'index out of range';
-			return nil;
-		}
-		let node = this.head;
-		for (let k = 0; k < i; k = k + 1) {
-			node = node.next;
-		}
-		return node.val;
-	}
-
-	set(i, val) {
-		if (i >= this.size) {
-			print 'index out of range';
-			return nil;
-		}
-		let node = this.head;
-		for (let k = 0; k < i; k = k + 1) {
-			node = node.next;
-		}
-		node.val = val;
-	}
-
-	push_front(val) {
-		if (this.size == 0) {
-			this.head = Node(val);
-			this.tail = this.head;
-			this.size = 1;
-			return;
-		}
-		let prev_head = this.head;
-		this.head = Node(val);
-		this.head.next = prev_head;
-		this.size = this.size + 1;
-	}
-
-	push_back(val) {
-		if (this.size == 0) {
-			this.head = Node(val);
-			this.tail = this.head;
-			this.size = 1;
-			return;
-		}
-		this.tail.next = Node(val);
-		this.tail = this.tail.next;
-		this.size = this.size + 1;
-	}
-
-	front() {
-		if (size == 0) {
-			print 'list is empty';
-			return nil;
-		}
-		return this.head.val;
-	}
-
-	back() {
-		if (size == 0) {
-			print 'list is empty';
-			return nil;
-		}
-		return this.tail.val;
-	}
-}
-
 let list = List();
+
 for (let i = 0; i < 10; i = i + 1) {
-	list.push_back(i);
+	list.push(i);
 }
-list.push_front(-1);
-list.set(2, 69);
-for (let i = 0; i < list.size; i = i + 1) {
-	print list.get(i);
+
+for (let i = 0; i < list.size(); i = i + 1) {
+	// print list.get(i);
 }
+
+for (let i = 0; i < 5; i = i + 1) {
+	let x = list.pop();
+	// print x;
+}
+
+list.set(0, 69);
+
+for (let i = 0; i < list.size(); i = i + 1) {
+	// print list.get(i);
+}
+
+let map = Map();
+map.set("a", 1);
+map.set("b", 2);
+print map.get("a");
+print map.get("b");
+print map.get("c");
+map.set("a", 3);
+print map.get("a");
+map.remove("a");
+print map.get("a");
+print map.has("a");
+print map.has("b");

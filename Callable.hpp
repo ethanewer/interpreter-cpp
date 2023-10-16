@@ -57,9 +57,9 @@ struct Clock : public Callable {
 
 struct Class : public Callable {
     std::string name;
-	std::shared_ptr<std::unordered_map<std::string, std::shared_ptr<Fn>>> methods;
+	std::shared_ptr<std::unordered_map<std::string, std::shared_ptr<Callable>>> methods;
 
-    Class(std::string name, std::shared_ptr<std::unordered_map<std::string, std::shared_ptr<Fn>>> methods);
+    Class(std::string name, std::shared_ptr<std::unordered_map<std::string, std::shared_ptr<Callable>>> methods);
 
 	std::shared_ptr<Obj> call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) override;
 
@@ -70,16 +70,122 @@ struct Class : public Callable {
 
 struct Instance : public Obj {
 	std::string type;
-	std::shared_ptr<std::unordered_map<std::string, std::shared_ptr<Fn>>> methods;
+	std::shared_ptr<std::unordered_map<std::string, std::shared_ptr<Callable>>> methods;
 	std::unordered_map<std::string, std::shared_ptr<Obj>> feilds;
 
-	Instance(std::string type, std::shared_ptr<std::unordered_map<std::string, std::shared_ptr<Fn>>> methods);
+	Instance(std::string type, std::shared_ptr<std::unordered_map<std::string, std::shared_ptr<Callable>>> methods);
 
 	std::shared_ptr<Obj> get(std::shared_ptr<Token> name);
 	
 	void set(std::shared_ptr<Token> name, std::shared_ptr<Obj> val);
 
 	std::string to_string();
+};
+
+struct List : public Callable {
+	List();
+
+	std::shared_ptr<Obj> call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) override;
+
+	int num_params() override;
+};
+
+struct ListSize : Callable {
+	std::shared_ptr<std::vector<std::shared_ptr<Obj>>> list;
+
+	ListSize(std::shared_ptr<std::vector<std::shared_ptr<Obj>>> list);
+
+	std::shared_ptr<Obj> call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) override;
+
+	int num_params() override;
+};
+
+struct ListGet : Callable {
+	std::shared_ptr<std::vector<std::shared_ptr<Obj>>> list;
+
+	ListGet(std::shared_ptr<std::vector<std::shared_ptr<Obj>>> list);
+
+	std::shared_ptr<Obj> call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) override;
+
+	int num_params() override;
+};
+
+struct ListSet : Callable {
+	std::shared_ptr<std::vector<std::shared_ptr<Obj>>> list;
+
+	ListSet(std::shared_ptr<std::vector<std::shared_ptr<Obj>>> list);
+
+	std::shared_ptr<Obj> call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) override;
+
+	int num_params() override;
+};
+
+struct ListPush : Callable {
+	std::shared_ptr<std::vector<std::shared_ptr<Obj>>> list;
+
+	ListPush(std::shared_ptr<std::vector<std::shared_ptr<Obj>>> list);
+
+	std::shared_ptr<Obj> call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) override;
+
+	int num_params() override;
+};
+
+struct ListPop : Callable {
+	std::shared_ptr<std::vector<std::shared_ptr<Obj>>> list;
+
+	ListPop(std::shared_ptr<std::vector<std::shared_ptr<Obj>>> list);
+
+	std::shared_ptr<Obj> call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) override;
+
+	int num_params() override;
+};
+
+struct Map : public Callable {
+	Map();
+
+	std::shared_ptr<Obj> call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) override;
+
+	int num_params() override;
+};
+
+struct MapGet : Callable {
+	std::shared_ptr<std::unordered_map<size_t, std::shared_ptr<Obj>>> map;
+
+	MapGet(std::shared_ptr<std::unordered_map<size_t, std::shared_ptr<Obj>>> map);
+
+	std::shared_ptr<Obj> call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) override;
+
+	int num_params() override;
+};
+
+struct MapSet : Callable {
+	std::shared_ptr<std::unordered_map<size_t, std::shared_ptr<Obj>>> map;
+
+	MapSet(std::shared_ptr<std::unordered_map<size_t, std::shared_ptr<Obj>>> map);
+
+	std::shared_ptr<Obj> call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) override;
+
+	int num_params() override;
+};
+
+struct MapRemove : Callable {
+	std::shared_ptr<std::unordered_map<size_t, std::shared_ptr<Obj>>> map;
+
+	MapRemove(std::shared_ptr<std::unordered_map<size_t, std::shared_ptr<Obj>>> map);
+
+	std::shared_ptr<Obj> call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) override;
+
+	int num_params() override;
+};
+
+struct MapContains : Callable {
+	std::shared_ptr<std::unordered_map<size_t, std::shared_ptr<Obj>>> map;
+
+	MapContains(std::shared_ptr<std::unordered_map<size_t, std::shared_ptr<Obj>>> map);
+
+	std::shared_ptr<Obj> call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) override;
+
+	int num_params() override;
 };
 
 #endif
