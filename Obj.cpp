@@ -7,7 +7,7 @@ std::string Obj::to_string() {
 }
 
 size_t Obj::hash() {
-		if (auto obj = dynamic_cast<BoolObj*>(this)) {
+	if (auto obj = dynamic_cast<BoolObj*>(this)) {
 		std::hash<bool> hasher;
 		return hasher(obj->val);
 	}

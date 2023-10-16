@@ -51,6 +51,8 @@ private:
 
 	std::shared_ptr<Expr> assignment();
 
+	std::shared_ptr<Expr> op_assignment(std::shared_ptr<Expr> expr, std::shared_ptr<Token> op);
+
 	std::shared_ptr<Expr> logical_or();
 
 	std::shared_ptr<Expr> logical_and();
@@ -62,12 +64,16 @@ private:
 	std::shared_ptr<Expr> term();
 
 	std::shared_ptr<Expr> factor();
+	
+	std::shared_ptr<Expr> exponent();
 
 	std::shared_ptr<Expr> unary();
 
 	std::shared_ptr<Expr> call();
 
 	std::shared_ptr<Expr> finish_call_expr(std::shared_ptr<Expr> callee);
+
+	std::shared_ptr<Expr> finish_idx_expr(std::shared_ptr<Expr> callee);
 
 	std::shared_ptr<Expr> primary();
 

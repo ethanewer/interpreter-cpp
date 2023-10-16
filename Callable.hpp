@@ -140,6 +140,46 @@ struct ListPop : Callable {
 	int num_params() override;
 };
 
+struct ListSort : Callable {
+	std::shared_ptr<std::vector<std::shared_ptr<Obj>>> list;
+
+	ListSort(std::shared_ptr<std::vector<std::shared_ptr<Obj>>> list);
+
+	std::shared_ptr<Obj> call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) override;
+
+	int num_params() override;
+};
+
+struct ListMap : Callable {
+	std::shared_ptr<std::vector<std::shared_ptr<Obj>>> list;
+
+	ListMap(std::shared_ptr<std::vector<std::shared_ptr<Obj>>> list);
+
+	std::shared_ptr<Obj> call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) override;
+
+	int num_params() override;
+};
+
+struct ListReduce : Callable {
+	std::shared_ptr<std::vector<std::shared_ptr<Obj>>> list;
+
+	ListReduce(std::shared_ptr<std::vector<std::shared_ptr<Obj>>> list);
+
+	std::shared_ptr<Obj> call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) override;
+
+	int num_params() override;
+};
+
+struct ListFilter : Callable {
+	std::shared_ptr<std::vector<std::shared_ptr<Obj>>> list;
+
+	ListFilter(std::shared_ptr<std::vector<std::shared_ptr<Obj>>> list);
+
+	std::shared_ptr<Obj> call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) override;
+
+	int num_params() override;
+};
+
 struct Map : public Callable {
 	Map();
 

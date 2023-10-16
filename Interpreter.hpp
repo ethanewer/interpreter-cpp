@@ -6,6 +6,7 @@
 #include <typeinfo>
 #include <string>
 #include <algorithm>
+#include <math.h>
 #include "Expr.hpp"
 #include "Stmt.hpp"
 #include "Error.hpp"
@@ -69,6 +70,8 @@ public:
 
 	void resolve(Expr* expr, int depth);
 
+	bool is_truthy(std::shared_ptr<Obj> val);
+
 private:
 	std::shared_ptr<Environment> env;
 	std::unordered_map<Expr*, int> locals;
@@ -76,8 +79,6 @@ private:
 	std::shared_ptr<Obj> evaluate(std::shared_ptr<Expr> expr);
 
 	void execute(std::shared_ptr<Stmt> stmt);
-
-	bool is_truthy(std::shared_ptr<Obj> val);
 
 	bool is_equal(std::shared_ptr<Obj> a, std::shared_ptr<Obj> b);
 

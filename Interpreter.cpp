@@ -119,6 +119,21 @@ std::shared_ptr<Obj> Interpreter::visit_binary_expr(Binary* expr) {
 			double_left = std::dynamic_pointer_cast<DoubleObj>(left);
 			double_right = std::dynamic_pointer_cast<DoubleObj>(right);
 			return std::make_shared<DoubleObj>(double_left->val * double_right->val);
+		case MOD:
+			check_num_operands(expr->op, left, right);
+			double_left = std::dynamic_pointer_cast<DoubleObj>(left);
+			double_right = std::dynamic_pointer_cast<DoubleObj>(right);
+			return std::make_shared<DoubleObj>((long) double_left->val % (long) double_right->val);
+		case STAR_STAR:
+			check_num_operands(expr->op, left, right);
+			double_left = std::dynamic_pointer_cast<DoubleObj>(left);
+			double_right = std::dynamic_pointer_cast<DoubleObj>(right);
+			return std::make_shared<DoubleObj>(pow(double_left->val, double_right->val));
+		case SLASH_SLASH:
+			check_num_operands(expr->op, left, right);
+			double_left = std::dynamic_pointer_cast<DoubleObj>(left);
+			double_right = std::dynamic_pointer_cast<DoubleObj>(right);
+			return std::make_shared<DoubleObj>((long) double_left->val / (long) double_right->val);
 	}
 	return nullptr;
 }

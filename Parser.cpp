@@ -161,18 +161,40 @@ std::shared_ptr<Expr> Parser::lambda_expr() {
 }
 
 std::shared_ptr<Expr> Parser::assignment() {
-	std::shared_ptr<Expr> expr = logical_or();
+	auto expr = logical_or();
 	if (match(EQUAL)) {
-		std::shared_ptr<Token> equals = prev();
-		std::shared_ptr<Expr> val = assignment();
+		auto equals = prev();
+		auto val = assignment();
 		if (auto variable = std::dynamic_pointer_cast<Variable>(expr)) {
 			return std::make_shared<Assign>(variable->name, val);
 		} else if (auto get = std::dynamic_pointer_cast<Get>(expr)) {
 			return std::make_shared<Set>(get->obj, get->name, val);
 		}
 		throw RuntimeError(equals, "Invalid assignment target");
+	} else if (match(PLUS_EQUAL, MINUS_EQUAL, STAR_EQUAL, SLASH_EQUAL, SLASH_SLASH_EQUAL, MOD_EQUAL)) {
+		return op_assignment(expr, prev());
+	} else {
+		return expr;
 	}
-	return expr;
+}
+
+std::shared_ptr<Expr> Parser::op_assignment(std::shared_ptr<Expr> expr, std::shared_ptr<Token> op) {
+	auto val = assignment();
+	std::shared_ptr<Token> binary_op;
+	switch (op->type) {
+		case PLUS_EQUAL: binary_op = std::make_shared<Token>(PLUS, "+", nullptr, op->line); break;
+		case MINUS_EQUAL: binary_op = std::make_shared<Token>(MINUS, "-", nullptr, op->line); break;
+		case STAR_EQUAL: binary_op = std::make_shared<Token>(STAR, "*", nullptr, op->line); break;
+		case SLASH_EQUAL: binary_op = std::make_shared<Token>(SLASH, "/", nullptr, op->line); break;
+		case SLASH_SLASH_EQUAL: binary_op = std::make_shared<Token>(SLASH_SLASH, "//", nullptr, op->line); break;
+		case MOD_EQUAL: binary_op = std::make_shared<Token>(MOD, "%", nullptr, op->line); break;
+	}
+	if (auto variable = std::dynamic_pointer_cast<Variable>(expr)) {
+		return std::make_shared<Assign>(variable->name, std::make_shared<Binary>(expr, binary_op, val));
+	} else if (auto get = std::dynamic_pointer_cast<Get>(expr)) {
+		return std::make_shared<Set>(get->obj, get->name, std::make_shared<Binary>(expr, binary_op, val));
+	}
+	throw RuntimeError(op, "Invalid assignment target");
 }
 
 std::shared_ptr<Expr> Parser::logical_or() {
@@ -226,8 +248,18 @@ std::shared_ptr<Expr> Parser::term() {
 }
 
 std::shared_ptr<Expr> Parser::factor() {
+	std::shared_ptr<Expr> expr = exponent();
+	while (match(SLASH, STAR, MOD, SLASH_SLASH)) {
+		std::shared_ptr<Token> op = prev();
+		std::shared_ptr<Expr> right = exponent();
+		expr = std::make_shared<Binary>(expr, op, right);
+	}
+	return expr;
+}
+
+std::shared_ptr<Expr> Parser::exponent() {
 	std::shared_ptr<Expr> expr = unary();
-	while (match(SLASH, STAR)) {
+	while (match(STAR_STAR)) {
 		std::shared_ptr<Token> op = prev();
 		std::shared_ptr<Expr> right = unary();
 		expr = std::make_shared<Binary>(expr, op, right);
@@ -245,13 +277,15 @@ std::shared_ptr<Expr> Parser::unary() {
 }
 
 std::shared_ptr<Expr> Parser::call() {
-	std::shared_ptr<Expr> expr = primary();
+	auto expr = primary();
 	for (;;) {
 		if (match(LEFT_PAREN)) {
 			expr = finish_call_expr(expr);
 		} else if (match(DOT)) {
 			std::shared_ptr<Token>  name = consume(IDENTIFIER, "Expect property after '.'");
 			expr = std::make_shared<Get>(expr, name);
+		} else if (match(LEFT_BRACKET)) {
+			expr = finish_idx_expr(expr);
 		} else {
 			break;
 		}
@@ -266,8 +300,24 @@ std::shared_ptr<Expr> Parser::finish_call_expr(std::shared_ptr<Expr> callee) {
 			arguments.push_back(expression());
 		} while (match(COMMA));
 	}
-	std::shared_ptr<Token> paren = consume(RIGHT_PAREN, "Expect ')' after arguments");
+	auto paren = consume(RIGHT_PAREN, "Expect ')' after arguments");
 	return std::make_shared<Call>(callee, paren, arguments);
+}
+
+std::shared_ptr<Expr> Parser::finish_idx_expr(std::shared_ptr<Expr> callee) {
+	std::vector<std::shared_ptr<Expr>> arguments;
+	arguments.push_back(expression());
+	auto bracket = consume(RIGHT_BRACKET, "Expect ']' after expression");
+	if (match(EQUAL)) {
+		arguments.push_back(expression());
+		auto token = std::make_shared<Token>(IDENTIFIER, "__set__", std::make_shared<StringObj>("__set__"), bracket->line);
+		auto get = std::make_shared<Get>(callee, token);
+		return std::make_shared<Call>(get, bracket, arguments);
+	} else {
+		auto token = std::make_shared<Token>(IDENTIFIER, "__get__", std::make_shared<StringObj>("__get__"), bracket->line);
+		auto get = std::make_shared<Get>(callee, token);
+		return std::make_shared<Call>(get, bracket, arguments);
+	}
 }
 
 std::shared_ptr<Expr> Parser::primary() {
@@ -278,7 +328,7 @@ std::shared_ptr<Expr> Parser::primary() {
 	if (match(IDENTIFIER)) return std::make_shared<Variable>(prev());
 	if (match(THIS)) return std::make_shared<This>(prev());
 	if (match(LEFT_PAREN)) {
-		std::shared_ptr<Expr> expr = expression();
+		auto expr = expression();
 		consume(RIGHT_PAREN, "Expect ')' after expression");
 		return std::make_shared<Grouping>(expr);
 	}

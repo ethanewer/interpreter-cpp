@@ -129,7 +129,7 @@ void Resolver::visit_class_stmt(ClassStmt* stmt) {
 	begin_scope();
 	scopes.back()["this"] = true;
 	for (auto m : stmt->methods) {
-		resolve_fn_stmt(m.get(), m->name->lexeme == "init" ? FnType_INIT : FnType_METHOD);
+		resolve_fn_stmt(m.get(), m->name->lexeme == "__init__" ? FnType_INIT : FnType_METHOD);
 	}
 	end_scope();
 	curr_class = enclosing_class;

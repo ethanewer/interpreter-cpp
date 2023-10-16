@@ -1,33 +1,20 @@
-let list = List();
+fn print_list(list) {
+	let s = '';
+	for (let i = 0; i < list.size(); i += 1) {
+		s = s + list[i] + ' ';
+	}
+	print s;
+}
 
-for (let i = 0; i < 10; i = i + 1) {
+let list = List();
+for (let i = 0; i < 10; i += 1) {
 	list.push(i);
 }
+list.sort(fn(list, b) { return b - list; });
+print_list(list);
+list.sort(fn(list, b) { return list < b; });
+print_list(list);
 
-for (let i = 0; i < list.size(); i = i + 1) {
-	// print list.get(i);
-}
-
-for (let i = 0; i < 5; i = i + 1) {
-	let x = list.pop();
-	// print x;
-}
-
-list.set(0, 69);
-
-for (let i = 0; i < list.size(); i = i + 1) {
-	// print list.get(i);
-}
-
-let map = Map();
-map.set("a", 1);
-map.set("b", 2);
-print map.get("a");
-print map.get("b");
-print map.get("c");
-map.set("a", 3);
-print map.get("a");
-map.remove("a");
-print map.get("a");
-print map.has("a");
-print map.has("b");
+print_list(list.map(fn(x) { return 2 ** x; }));
+print list.reduce(fn(x, y) { return x + y; }, 0);
+print_list(list.filter(fn(x) { return x % 2 == 0; }));

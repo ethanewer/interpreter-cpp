@@ -40,25 +40,21 @@ void Scanner::scan_token(std::vector<std::shared_ptr<Token>>& tokens) {
 		case ')': add_token(tokens, RIGHT_PAREN); break;
 		case '{': add_token(tokens, LEFT_BRACE); break;
 		case '}': add_token(tokens, RIGHT_BRACE); break;
+		case '[': add_token(tokens, LEFT_BRACKET); break;
+		case ']': add_token(tokens, RIGHT_BRACKET); break;
 		case ',': add_token(tokens, COMMA); break;
 		case '.': add_token(tokens, DOT); break;
-		case '-': add_token(tokens, MINUS); break;
-		case '+': add_token(tokens, PLUS); break;
+		case '-': add_token(tokens, match('=') ? MINUS_EQUAL : MINUS); break;
+		case '+': add_token(tokens, match('=') ? PLUS_EQUAL : PLUS); break;
+		case '%': add_token(tokens, match('=') ? MOD_EQUAL : MOD); break;
 		case ';': add_token(tokens, SEMICOLON); break;
-		case '*': add_token(tokens, STAR); break; 
+		case '*': add_token(tokens, match('=') ? STAR_EQUAL : (match('*') ? STAR_STAR : STAR)); break; 
 		case '!': add_token(tokens, match('=') ? BANG_EQUAL : BANG); break;
 		case '=': add_token(tokens, match('=') ? EQUAL_EQUAL : EQUAL); break;
 		case '<': add_token(tokens, match('=') ? LESS_EQUAL : LESS); break;
 		case '>': add_token(tokens, match('=') ? GREATER_EQUAL : GREATER); break;
-		case '/':
-			if (match('/')) {
-				while (peek() != '\n' && !is_at_end()) {
-					advance();
-				}
-			} else {
-				add_token(tokens, SLASH);
-			}
-			break;
+		case '/': add_token(tokens, match('=') ? SLASH_EQUAL : (match('/') ? (match('=') ? SLASH_SLASH_EQUAL : SLASH_SLASH) : SLASH)); break; 
+		case '#': while (peek() != '\n' && !is_at_end()) advance(); break;
 		case ' ':
 		case '\r':
 		case '\t': break;
