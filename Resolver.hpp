@@ -8,7 +8,9 @@
 #include "Stmt.hpp"
 #include "Interpreter.hpp"
 
-enum FnType { NONE, FUNCTION, METHOD };
+enum FnType { FnType_NONE, FnType_FN, FnType_METHOD, FnType_INIT };
+
+enum ClassType { ClassType_NONE, ClassType_CLASS };
 
 class Resolver : Expr::Visitor, Stmt::Visitor {
 public:
@@ -35,6 +37,8 @@ public:
 	std::shared_ptr<Obj> visit_get_expr(Get* expr) override;
 	
 	std::shared_ptr<Obj> visit_set_expr(Set* expr) override;
+	
+	std::shared_ptr<Obj> visit_this_expr(This* expr) override;
 
 	void visit_expression_stmt(Expression* stmt) override;
 
@@ -60,6 +64,7 @@ private:
 	Interpreter* interpreter;
 	std::vector<std::unordered_map<std::string, bool>> scopes;
 	FnType curr_fn;
+	ClassType curr_class;
 
 	void resolve(std::shared_ptr<Stmt> stmt);
 

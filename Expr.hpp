@@ -19,6 +19,7 @@ class Call;
 class LambdaExpr;
 class Get;
 class Set;
+class This;
 
 class Expr {
 public: 
@@ -35,6 +36,7 @@ public:
         virtual std::shared_ptr<Obj> visit_lambda_expr(LambdaExpr* expr) = 0;
         virtual std::shared_ptr<Obj> visit_get_expr(Get* expr) = 0;
         virtual std::shared_ptr<Obj> visit_set_expr(Set* expr) = 0;
+        virtual std::shared_ptr<Obj> visit_this_expr(This* expr) = 0;
 	};
 
 	virtual std::shared_ptr<Obj> accept(Visitor* visitor) = 0;
@@ -175,6 +177,17 @@ public:
 
     std::shared_ptr<Obj> accept(Visitor* visitor) override {
         return visitor->visit_set_expr(this);
+    }
+};
+
+class This : public Expr {
+public:
+    std::shared_ptr<Token> keyword;
+    
+    This(std::shared_ptr<Token> keyword) : keyword(keyword) {}
+
+    std::shared_ptr<Obj> accept(Visitor* visitor) override {
+        return visitor->visit_this_expr(this);
     }
 };
 

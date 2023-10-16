@@ -24,6 +24,12 @@ int Fn::num_params() {
 	return params.size();
 }
 
+std::shared_ptr<Fn> Fn::bind(std::shared_ptr<Instance> instance) {
+	auto env = std::make_shared<Environment>(closure);
+	env->define("this", instance);
+	return std::make_shared<Fn>(name, params, body, env);
+}
+
 Lambda::Lambda(std::vector<std::shared_ptr<Token>> params, std::vector<std::shared_ptr<Stmt>> body)
 	: params(params), body(body) {}
 
@@ -58,11 +64,14 @@ int Clock::num_params() {
 Class::Class(std::string name, std::shared_ptr<std::unordered_map<std::string, std::shared_ptr<Fn>>> methods) 
 	: name(name), methods(methods) {}
 
-std::shared_ptr<Obj> Class::call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments)  {
-	return std::make_shared<Instance>(name, methods);
+std::shared_ptr<Obj> Class::call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) {
+	auto instance = std::make_shared<Instance>(name, methods);
+	if (methods->count("init")) (*methods)["init"]->bind(instance)->call(interpreter, arguments);
+	return instance;
 }
 
 int Class::num_params() {
+	if (methods->count("init")) return (*methods)["init"]->num_params();
 	return 0;
 }
 
@@ -74,8 +83,11 @@ Instance::Instance(std::string type, std::shared_ptr<std::unordered_map<std::str
 	: type(type), methods(methods) {}
 
 std::shared_ptr<Obj> Instance::get(std::shared_ptr<Token> name) {
-	if (feilds.count(name->lexeme)) return feilds[name->lexeme];
-	if (methods->count(name->lexeme)) return (*methods)[name->lexeme];
+	if (feilds.count(name->lexeme)) {
+		return feilds[name->lexeme];
+	} else if (methods->count(name->lexeme)) {
+		return (*methods)[name->lexeme]->bind(std::shared_ptr<Instance>(this, [](Instance*) {}));
+	}
 	throw RuntimeError(name, "Undefined property '" + name->lexeme + "'");
 }
 

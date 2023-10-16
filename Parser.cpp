@@ -276,6 +276,7 @@ std::shared_ptr<Expr> Parser::primary() {
 	if (match(NIL)) return std::make_shared<Literal>(nullptr);
 	if (match(NUMBER, STRING)) return std::make_shared<Literal>(prev()->literal);
 	if (match(IDENTIFIER)) return std::make_shared<Variable>(prev());
+	if (match(THIS)) return std::make_shared<This>(prev());
 	if (match(LEFT_PAREN)) {
 		std::shared_ptr<Expr> expr = expression();
 		consume(RIGHT_PAREN, "Expect ')' after expression");

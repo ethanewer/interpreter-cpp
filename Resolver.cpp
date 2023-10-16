@@ -1,6 +1,7 @@
 #include "Resolver.hpp"
 
-Resolver::Resolver(Interpreter* interpreter) : interpreter(interpreter), curr_fn(NONE) {}
+Resolver::Resolver(Interpreter* interpreter) 
+	: interpreter(interpreter), curr_fn(FnType_NONE), curr_class(ClassType_NONE) {}
 
 std::shared_ptr<Obj> Resolver::visit_literal_expr(Literal* expr) {
 	return nullptr;
@@ -52,7 +53,7 @@ std::shared_ptr<Obj> Resolver::visit_call_expr(Call* expr) {
 }
 
 std::shared_ptr<Obj> Resolver::visit_lambda_expr(LambdaExpr* expr) {
-	resolve_lambda_expr(expr, FUNCTION);
+	resolve_lambda_expr(expr, FnType_FN);
 	return nullptr;
 }
 
@@ -64,6 +65,14 @@ std::shared_ptr<Obj> Resolver::visit_get_expr(Get* expr) {
 std::shared_ptr<Obj> Resolver::visit_set_expr(Set* expr) {
 	resolve(expr->val);
 	resolve(expr->obj);
+	return nullptr;
+}
+
+std::shared_ptr<Obj> Resolver::visit_this_expr(This* expr) {
+	if (curr_class == ClassType_NONE) {
+		throw RuntimeError(expr->keyword, "Can't use 'this' outside of a class");
+	}
+	resolve_local(expr, expr->keyword);
 	return nullptr;
 }
 
@@ -101,18 +110,29 @@ void Resolver::visit_while_stmt(While* stmt) {
 void Resolver::visit_fn_stmt(FnStmt* stmt) {
 	declare(stmt->name);
 	define(stmt->name);
-	resolve_fn_stmt(stmt, FUNCTION);
+	resolve_fn_stmt(stmt, FnType_FN);
 }
 
 void Resolver::visit_return_stmt(Return* stmt) {
-	if (curr_fn == NONE) throw RuntimeError(stmt->keyword, "Can't return from top level");
-	if (stmt->val != nullptr) resolve(stmt->val); 
+	if (curr_fn == FnType_NONE) throw RuntimeError(stmt->keyword, "Can't return from top level");
+	if (stmt->val != nullptr) {
+		if (curr_fn == FnType_INIT) throw RuntimeError(stmt->keyword, "Can't return value from constructor");
+		resolve(stmt->val); 
+	}
 }
 
 void Resolver::visit_class_stmt(ClassStmt* stmt) {
 	declare(stmt->name);
-	for (auto m : stmt->methods) resolve_fn_stmt(m.get(), METHOD);
 	define(stmt->name);
+	ClassType enclosing_class = curr_class;
+	curr_class = ClassType_CLASS;
+	begin_scope();
+	scopes.back()["this"] = true;
+	for (auto m : stmt->methods) {
+		resolve_fn_stmt(m.get(), m->name->lexeme == "init" ? FnType_INIT : FnType_METHOD);
+	}
+	end_scope();
+	curr_class = enclosing_class;
 }
 
 void Resolver::resolve(std::vector<std::shared_ptr<Stmt>>& stmts) {

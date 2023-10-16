@@ -8,6 +8,7 @@
 #include "ReturnException.hpp"
 
 class Interpreter;
+struct Instance;
 
 struct Callable : public Obj { 
 	virtual std::shared_ptr<Obj> call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) = 0;
@@ -28,8 +29,9 @@ struct Fn : public Callable {
 	std::shared_ptr<Obj> call(Interpreter* interpreter, std::vector<std::shared_ptr<Obj>> arguments) override;
 
 	int num_params() override;
+	
+	std::shared_ptr<Fn> bind(std::shared_ptr<Instance> instance);
 
-private:
 	std::shared_ptr<Token> name;
 	std::vector<std::shared_ptr<Token>> params;
 	std::vector<std::shared_ptr<Stmt>> body;
@@ -43,7 +45,6 @@ struct Lambda : public Callable {
 
 	int num_params() override;
 
-private:
 	std::vector<std::shared_ptr<Token>> params;
 	std::vector<std::shared_ptr<Stmt>> body;
 };

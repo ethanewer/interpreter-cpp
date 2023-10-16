@@ -46,6 +46,8 @@ public:
 	std::shared_ptr<Obj> visit_get_expr(Get* expr) override;
 	
 	std::shared_ptr<Obj> visit_set_expr(Set* expr) override;
+	
+	std::shared_ptr<Obj> visit_this_expr(This* expr) override;
 
 	void visit_expression_stmt(Expression* stmt) override;
 

@@ -182,6 +182,15 @@ std::shared_ptr<Obj> Interpreter::visit_set_expr(Set* expr) {
 	throw RuntimeError(expr->name, "Only instances have feilds");
 }
 
+std::shared_ptr<Obj> Interpreter::visit_this_expr(This* expr) {
+	if (locals.count(expr)) {
+		int dist = locals[expr];
+		return env->get_at(dist, expr->keyword->lexeme);
+	} else {
+		return globals->get(expr->keyword);
+	}
+}
+
 void Interpreter::visit_expression_stmt(Expression* stmt) {
 	evaluate(stmt->expression);
 }
