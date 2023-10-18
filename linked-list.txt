@@ -1,12 +1,12 @@
 class Node {
-	init(val) {
+	__init__(val) {
 		this.val = val;
 		this.next = nil;
 	}
 }
 
-class List {
-	init() {
+class LinkedList {
+	__init__() {
 		this.size = 0;
 		this.head = nil;
 		this.tail = nil;
@@ -78,7 +78,7 @@ class List {
 	}
 }
 
-let list = List();
+let list = LinkedList();
 for (let i = 0; i < 10; i = i + 1) {
 	list.push_back(i);
 }
